@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+build/
+dist/
+*.spec
+coverage.xml
+.coverage
+*.log
+state.jsonl
+reports/

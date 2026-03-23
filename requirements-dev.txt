@@ -1,0 +1,4 @@
+﻿pytest>=8.3.0
+pyinstaller>=6.11.1
+hatchling>=1.25.0
+send2trash>=1.8.3

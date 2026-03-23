@@ -1,0 +1,25 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fileops"
+version = "0.1.0"
+description = "Safe file operation toolkit with copy, move, rename, delete."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "FileOps Team" }
+]
+dependencies = [
+  "send2trash>=1.8.3"
+]
+
+[project.scripts]
+fileops = "fileops.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fileops"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
