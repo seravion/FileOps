@@ -38,7 +38,7 @@ from .reporting import write_report
 class OperationWorker(QThread):
     progress_changed = Signal(int, int, str)
     log_message = Signal(str)
-    finished_status = Signal(str, bool)
+    finished_status = Signal(str, bool, str)
 
     def __init__(self, params: dict[str, object], operation_value_to_label: dict[str, str]) -> None:
         super().__init__()
@@ -63,6 +63,7 @@ class OperationWorker(QThread):
 
         try:
             total = len(sources)
+            failure_details: list[str] = []
             for idx, source in enumerate(sources, start=1):
                 source_path = Path(source)
                 self.progress_changed.emit(idx - 1, total, f"处理中：{source_path.name}")
@@ -77,6 +78,8 @@ class OperationWorker(QThread):
                     self.log_message.emit(
                         f"[{status_text}] {op_label} | {item.source} -> {item.destination} | {item.message}"
                     )
+                    if item.status.value == "failed":
+                        failure_details.append(f"{Path(item.source).name}: {item.message}")
 
                 self.progress_changed.emit(idx, total, f"已完成：{source_path.name}")
 
@@ -94,11 +97,24 @@ class OperationWorker(QThread):
                 self.log_message.emit(f"报告输出: {output_path}")
 
             has_failure = summary["failed"] > 0
-            final_status = "执行完成（存在失败）" if has_failure else "执行完成"
-            self.finished_status.emit(final_status, has_failure)
+            if has_failure:
+                detail_lines = failure_details[:3]
+                if detail_lines:
+                    self.log_message.emit("失败详情:")
+                    for line in detail_lines:
+                        self.log_message.emit(f"- {line}")
+                    remain_count = len(failure_details) - len(detail_lines)
+                    if remain_count > 0:
+                        self.log_message.emit(f"- 其余 {remain_count} 条请查看报告文件。")
+                detail_text = "\n".join(detail_lines) if detail_lines else "Please check execution log or report file."
+
+                self.finished_status.emit("执行完成（存在失败）", True, detail_text)
+            else:
+                self.finished_status.emit("执行完成", False, "")
 
         except Exception as exc:  # noqa: BLE001
-            self.finished_status.emit(f"执行失败：{exc}", True)
+            self.log_message.emit(f"[异常] {exc}")
+            self.finished_status.emit("执行失败", True, str(exc))
 
     def _run_single(self, operation: str, source: Path, rename_index: int) -> list[OperationResult]:
         workspace = Path(self.params["workspace"])
@@ -460,11 +476,12 @@ class FileOpsWindow(QMainWindow):
     def _on_worker_log(self, text: str) -> None:
         self._append_log(text)
 
-    def _on_worker_finished(self, status: str, is_error: bool) -> None:
+    def _on_worker_finished(self, status: str, is_error: bool, detail: str) -> None:
         self._set_running(False)
         self.status_label.setText(status)
         if is_error:
-            QMessageBox.critical(self, "执行结果", status)
+            message = status if not detail else f"{status}\n\n{detail}"
+            QMessageBox.critical(self, "执行结果", message)
         else:
             QMessageBox.information(self, "执行结果", status)
 
@@ -616,4 +633,3 @@ def launch_gui() -> None:
 
 if __name__ == "__main__":
     launch_gui()
-

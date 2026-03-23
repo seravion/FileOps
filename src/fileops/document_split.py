@@ -93,7 +93,7 @@ def _split_docx(source: Path, heading_mode: str, include_image_text: bool) -> li
     current_lines: list[str] = []
 
     for paragraph in doc.paragraphs:
-        heading_level = _get_docx_heading_level(getattr(paragraph.style, "name", ""))
+        heading_level = _get_docx_heading_level(_safe_docx_style_name(paragraph))
         text = paragraph.text.strip()
 
         if _is_heading_boundary(heading_level, heading_mode):
@@ -157,6 +157,14 @@ def _split_text_document(source: Path, heading_mode: str, include_image_text: bo
     return sections
 
 
+def _safe_docx_style_name(paragraph: Any) -> str:
+    try:
+        style = paragraph.style
+    except Exception:  # noqa: BLE001
+        return ""
+    return str(getattr(style, "name", "") or "")
+
+
 def _extract_docx_image_lines(paragraph: Any, include_image_text: bool) -> list[str]:
     if not include_image_text:
         return []
@@ -165,13 +173,19 @@ def _extract_docx_image_lines(paragraph: Any, include_image_text: bool) -> list[
     if qn is None:
         return image_lines
 
-    blips = paragraph._element.xpath(".//a:blip")
+    try:
+        blips = paragraph._element.xpath(".//a:blip")
+    except Exception:  # noqa: BLE001
+        return image_lines
     for blip in blips:
         embed_id = blip.get(qn("r:embed"))
         if not embed_id:
             continue
 
-        image_part = paragraph.part.related_parts.get(embed_id)
+        try:
+            image_part = paragraph.part.related_parts.get(embed_id)
+        except Exception:  # noqa: BLE001
+            continue
         if image_part is None:
             continue
 

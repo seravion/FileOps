@@ -113,3 +113,25 @@ def test_doc_split_markdown_by_heading() -> None:
         produced = sorted(out_dir.glob("sample_*.txt"))
         assert len(produced) >= 2
         assert "[图片说明] diagram" in produced[0].read_text(encoding="utf-8")
+
+class _BrokenStyleParagraph:
+    @property
+    def style(self) -> object:
+        raise KeyError("missing style")
+
+
+class _NormalStyleParagraph:
+    class _Style:
+        name = "Heading 1"
+
+    @property
+    def style(self) -> object:
+        return self._Style()
+
+
+def test_safe_docx_style_name_handles_style_lookup_error() -> None:
+    from fileops.document_split import _safe_docx_style_name
+
+    assert _safe_docx_style_name(_BrokenStyleParagraph()) == ""
+    assert _safe_docx_style_name(_NormalStyleParagraph()) == "Heading 1"
+
