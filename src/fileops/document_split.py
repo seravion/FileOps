@@ -5,15 +5,18 @@ import re
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from zipfile import is_zipfile
 
 from .models import OperationResult, OperationStatus
 from .utils import duration_ms, ensure_workspace_path, now_iso
 
 try:
     from docx import Document
+    from docx.opc.exceptions import PackageNotFoundError
     from docx.oxml.ns import qn
 except ImportError:  # pragma: no cover
     Document = None
+    PackageNotFoundError = None
     qn = None
 
 try:
@@ -83,39 +86,61 @@ def split_documents_by_structure(
     return results
 
 
+def _looks_like_legacy_doc(source: Path) -> bool:
+    try:
+        with source.open("rb") as stream:
+            signature = stream.read(8)
+    except OSError:
+        return False
+    return signature == b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1"
+
+
 def _split_docx(source: Path, heading_mode: str, include_image_text: bool) -> list[dict[str, Any]]:
     if Document is None:
         raise RuntimeError("python-docx is not installed. Please install dependencies first.")
 
-    doc = Document(str(source))
-    sections: list[dict[str, Any]] = []
-    current_title = "导言"
-    current_lines: list[str] = []
+    if not is_zipfile(source):
+        if _looks_like_legacy_doc(source):
+            raise ValueError("检测到旧版 DOC 文档（或伪装为 .docx），请在 Word/WPS 中另存为标准 .docx 后重试。")
+        raise ValueError("该文件不是有效的 .docx 包（可能损坏或扩展名不匹配），请在 Word/WPS 中重新另存为 .docx 后重试。")
 
-    for paragraph in doc.paragraphs:
-        heading_level = _get_docx_heading_level(_safe_docx_style_name(paragraph))
-        text = paragraph.text.strip()
+    try:
+        with source.open("rb") as stream:
+            doc = Document(stream)
 
-        if _is_heading_boundary(heading_level, heading_mode):
+            sections: list[dict[str, Any]] = []
+            current_title = "导言"
+            current_lines: list[str] = []
+
+            for paragraph in doc.paragraphs:
+                heading_level = _get_docx_heading_level(_safe_docx_style_name(paragraph))
+                text = paragraph.text.strip()
+
+                if _is_heading_boundary(heading_level, heading_mode):
+                    if current_lines:
+                        sections.append({"title": current_title, "lines": current_lines[:]})
+                        current_lines.clear()
+                    current_title = text or f"section_{len(sections) + 1}"
+                    if text:
+                        current_lines.append(text)
+                    continue
+
+                if text:
+                    current_lines.append(text)
+
+                if include_image_text:
+                    image_lines = _extract_docx_image_lines(paragraph, include_image_text)
+                    current_lines.extend(image_lines)
+
             if current_lines:
                 sections.append({"title": current_title, "lines": current_lines[:]})
-                current_lines.clear()
-            current_title = text or f"section_{len(sections) + 1}"
-            if text:
-                current_lines.append(text)
-            continue
 
-        if text:
-            current_lines.append(text)
+            return sections
 
-        if include_image_text:
-            image_lines = _extract_docx_image_lines(paragraph, include_image_text)
-            current_lines.extend(image_lines)
-
-    if current_lines:
-        sections.append({"title": current_title, "lines": current_lines[:]})
-
-    return sections
+    except Exception as exc:  # noqa: BLE001
+        if PackageNotFoundError is not None and isinstance(exc, PackageNotFoundError):
+            raise ValueError("无法读取 .docx 文档包，请确认文件存在且格式正确。") from exc
+        raise ValueError(f".docx 解析失败：{exc}") from exc
 
 
 def _split_text_document(source: Path, heading_mode: str, include_image_text: bool) -> list[dict[str, Any]]:

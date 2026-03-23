@@ -135,3 +135,24 @@ def test_safe_docx_style_name_handles_style_lookup_error() -> None:
     assert _safe_docx_style_name(_BrokenStyleParagraph()) == ""
     assert _safe_docx_style_name(_NormalStyleParagraph()) == "Heading 1"
 
+def test_doc_split_invalid_docx_reports_friendly_error() -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "not_a_real_docx.docx"
+        src.write_text("this is plain text, not docx package", encoding="utf-8")
+
+        out_dir = root / "doc_parts"
+        results = split_documents_by_structure(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            heading_mode="h1_h2",
+            include_image_text=False,
+        )
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.FAILED
+        assert ".docx" in results[0].message
+        assert "Word/WPS" in results[0].message
+

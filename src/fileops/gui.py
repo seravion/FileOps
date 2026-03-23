@@ -106,7 +106,7 @@ class OperationWorker(QThread):
                     remain_count = len(failure_details) - len(detail_lines)
                     if remain_count > 0:
                         self.log_message.emit(f"- 其余 {remain_count} 条请查看报告文件。")
-                detail_text = "\n".join(detail_lines) if detail_lines else "Please check execution log or report file."
+                detail_text = "\n".join(detail_lines) if detail_lines else "请查看执行日志或报告文件。"
 
                 self.finished_status.emit("执行完成（存在失败）", True, detail_text)
             else:
