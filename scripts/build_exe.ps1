@@ -72,6 +72,23 @@ if ($Clean) {
     if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
 }
 
+if (Test-Path "dist\\fileops_new.exe") {
+    Remove-Item -Force "dist\\fileops_new.exe"
+}
+
+if (Test-Path "fileops_new.spec") {
+    Remove-Item -Force "fileops_new.spec"
+}
+
+if (Test-Path "dist\\fileops.exe") {
+    try {
+        Remove-Item -Force "dist\\fileops.exe"
+    }
+    catch {
+        throw "Cannot overwrite dist\\fileops.exe. Please close FileOps and retry."
+    }
+}
+
 $resolvedPython = Resolve-Python -Requested $PythonExe
 
 if (-not (Test-Path ".venv\\Scripts\\python.exe")) {
@@ -81,7 +98,7 @@ if (-not (Test-Path ".venv\\Scripts\\python.exe")) {
 $venvPython = ".\.venv\Scripts\python.exe"
 Invoke-Checked -Command $venvPython -Arguments @("-m", "pip", "install", "--upgrade", "pip")
 
-$requiredModules = @("pytest", "PyInstaller", "hatchling", "send2trash", "docx", "PIL", "pytesseract")
+$requiredModules = @("pytest", "PyInstaller", "hatchling", "send2trash", "docx", "PIL", "pytesseract", "PySide6")
 $missing = @()
 foreach ($module in $requiredModules) {
     if (-not (Test-Module -PythonPath $venvPython -Module $module)) {
@@ -101,5 +118,3 @@ Invoke-Checked -Command $venvPython -Arguments @("-m", "pip", "install", "--no-b
 Invoke-Checked -Command ".\.venv\Scripts\pyinstaller.exe" -Arguments @("--clean", "--noconfirm", "--windowed", "--onefile", "--name", "fileops", "--paths", "src", "scripts/entrypoint.py")
 
 Write-Host "Build completed: dist\\fileops.exe"
-
-

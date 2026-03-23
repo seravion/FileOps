@@ -1,9 +1,32 @@
 ﻿from __future__ import annotations
 
-import threading
-import tkinter as tk
+import sys
 from pathlib import Path
-from tkinter import filedialog, messagebox, ttk
+
+from PySide6.QtCore import QThread, Signal, Qt
+from PySide6.QtWidgets import (
+    QApplication,
+    QCheckBox,
+    QComboBox,
+    QDoubleSpinBox,
+    QFileDialog,
+    QFrame,
+    QGroupBox,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QListWidget,
+    QListWidgetItem,
+    QMainWindow,
+    QMessageBox,
+    QPlainTextEdit,
+    QPushButton,
+    QProgressBar,
+    QRadioButton,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
+)
 
 from .document_split import split_documents_by_structure
 from .models import OperationResult, RunReport
@@ -11,12 +34,113 @@ from .operations import CommonOptions, copy_items, delete_items, move_items, ren
 from .reporting import write_report
 
 
-class FileOpsGUI:
-    def __init__(self, root: tk.Tk) -> None:
-        self.root = root
-        self.root.title("FileOps 文件操作工具")
-        self.root.geometry("1120x780")
-        self.root.minsize(980, 700)
+class OperationWorker(QThread):
+    progress_changed = Signal(int, int, str)
+    log_message = Signal(str)
+    finished_status = Signal(str, bool)
+
+    def __init__(self, params: dict[str, object], operation_value_to_label: dict[str, str]) -> None:
+        super().__init__()
+        self.params = params
+        self.operation_value_to_label = operation_value_to_label
+
+    def run(self) -> None:
+        operation = str(self.params["operation"])
+        sources = list(self.params["sources"])
+        report = RunReport(
+            command=operation,
+            dry_run_mode=bool(self.params["dry_run"]),
+            workspace=str(self.params["workspace"]),
+        )
+
+        status_map = {
+            "success": "成功",
+            "failed": "失败",
+            "skipped": "跳过",
+            "dry_run": "预演",
+        }
+
+        try:
+            total = len(sources)
+            for idx, source in enumerate(sources, start=1):
+                source_path = Path(source)
+                self.progress_changed.emit(idx - 1, total, f"处理中：{source_path.name}")
+                self.log_message.emit(f"[{idx}/{total}] 开始处理：{source_path}")
+
+                rename_index = int(self.params.get("start_index", 1)) + idx - 1
+                results = self._run_single(operation, source_path, rename_index)
+                for item in results:
+                    report.add(item)
+                    op_label = self.operation_value_to_label.get(item.operation, item.operation)
+                    status_text = status_map.get(item.status.value, item.status.value)
+                    self.log_message.emit(
+                        f"[{status_text}] {op_label} | {item.source} -> {item.destination} | {item.message}"
+                    )
+
+                self.progress_changed.emit(idx, total, f"已完成：{source_path.name}")
+
+            report_path_text = str(self.params["report_path"]).strip()
+            output_path = write_report(report, Path(report_path_text).resolve(strict=False)) if report_path_text else None
+
+            summary = report.summary()
+            self.log_message.emit("")
+            self.log_message.emit(
+                "汇总: "
+                f"总数={summary['total']} 成功={summary['success']} 预演={summary['dry_run']} "
+                f"跳过={summary['skipped']} 失败={summary['failed']}"
+            )
+            if output_path is not None:
+                self.log_message.emit(f"报告输出: {output_path}")
+
+            has_failure = summary["failed"] > 0
+            final_status = "执行完成（存在失败）" if has_failure else "执行完成"
+            self.finished_status.emit(final_status, has_failure)
+
+        except Exception as exc:  # noqa: BLE001
+            self.finished_status.emit(f"执行失败：{exc}", True)
+
+    def _run_single(self, operation: str, source: Path, rename_index: int) -> list[OperationResult]:
+        workspace = Path(self.params["workspace"])
+        dry_run = bool(self.params["dry_run"])
+
+        if operation in {"copy", "move", "rename", "split"}:
+            common = CommonOptions(
+                workspace=workspace,
+                dry_run=dry_run,
+                overwrite=str(self.params["overwrite"]),
+            )
+
+            if operation == "copy":
+                return copy_items([source], Path(self.params["destination"]), common)
+            if operation == "move":
+                return move_items([source], Path(self.params["destination"]), common)
+            if operation == "rename":
+                return rename_items([source], str(self.params["pattern"]), rename_index, common)
+            return split_items([source], Path(self.params["destination"]), float(self.params["split_size_mb"]), common)
+
+        if operation == "doc_split":
+            return split_documents_by_structure(
+                sources=[source],
+                destination=Path(self.params["destination"]),
+                workspace=workspace,
+                dry_run=dry_run,
+                heading_mode=str(self.params["heading_mode"]),
+                include_image_text=bool(self.params["include_image_text"]),
+            )
+
+        return delete_items(
+            sources=[source],
+            workspace=workspace,
+            dry_run=dry_run,
+            use_trash=bool(self.params["use_trash"]),
+        )
+
+
+class FileOpsWindow(QMainWindow):
+    def __init__(self) -> None:
+        super().__init__()
+        self.setWindowTitle("FileOps 文件操作工具")
+        self.resize(1160, 820)
 
         self.operation_label_to_value = {
             "复制": "copy",
@@ -27,487 +151,417 @@ class FileOpsGUI:
             "文档拆分": "doc_split",
         }
         self.operation_value_to_label = {value: key for key, value in self.operation_label_to_value.items()}
-
         self.doc_mode_label_to_value = {
             "按一级标题": "h1",
             "按二级标题": "h2",
             "按一级+二级标题": "h1_h2",
         }
 
-        self.operation_label_var = tk.StringVar(value="复制")
-        self.workspace_var = tk.StringVar(value=str(Path.cwd()))
-        self.destination_var = tk.StringVar(value="")
-        self.rename_pattern_var = tk.StringVar(value="{stem}_{index}{ext}")
-        self.start_index_var = tk.IntVar(value=1)
-        self.overwrite_var = tk.StringVar(value="never")
-        self.file_split_size_var = tk.StringVar(value="20")
-        self.doc_mode_label_var = tk.StringVar(value="按一级+二级标题")
-        self.include_image_text_var = tk.BooleanVar(value=True)
-        self.report_path_var = tk.StringVar(value="")
-        self.dry_run_var = tk.BooleanVar(value=False)
-        self.use_trash_var = tk.BooleanVar(value=True)
-        self.status_var = tk.StringVar(value="就绪")
-        self.progress_text_var = tk.StringVar(value="进度：未开始")
-        self.progress_var = tk.DoubleVar(value=0.0)
-
-        self._build_styles()
+        self.worker: OperationWorker | None = None
         self._build_ui()
+        self._apply_styles()
         self._sync_operation_fields()
 
-    def _build_styles(self) -> None:
-        self.root.configure(bg="#f3f6fb")
-        style = ttk.Style(self.root)
-        try:
-            style.theme_use("clam")
-        except tk.TclError:
-            pass
-
-        style.configure(".", font=("Microsoft YaHei UI", 10))
-        style.configure("Page.TFrame", background="#f3f6fb")
-        style.configure("Header.TFrame", background="#f3f6fb")
-        style.configure("HeaderTitle.TLabel", background="#f3f6fb", foreground="#0f172a", font=("Microsoft YaHei UI", 16, "bold"))
-        style.configure("HeaderSub.TLabel", background="#f3f6fb", foreground="#475569", font=("Microsoft YaHei UI", 10))
-        style.configure("Card.TLabelframe", background="#ffffff", bordercolor="#dbe2ef", relief="solid", borderwidth=1)
-        style.configure("Card.TLabelframe.Label", background="#ffffff", foreground="#1e293b", font=("Microsoft YaHei UI", 10, "bold"))
-        style.configure("Primary.TButton", font=("Microsoft YaHei UI", 10, "bold"), padding=(14, 7))
-        style.configure("Progress.Horizontal.TProgressbar", troughcolor="#e2e8f0", background="#3b82f6", thickness=14)
-
     def _build_ui(self) -> None:
-        page = ttk.Frame(self.root, style="Page.TFrame", padding=12)
-        page.pack(fill=tk.BOTH, expand=True)
+        central = QWidget(self)
+        self.setCentralWidget(central)
+        root_layout = QVBoxLayout(central)
+        root_layout.setContentsMargins(12, 12, 12, 12)
+        root_layout.setSpacing(10)
 
-        header = ttk.Frame(page, style="Header.TFrame")
-        header.pack(fill=tk.X, pady=(0, 8))
-        ttk.Label(header, text="FileOps", style="HeaderTitle.TLabel").pack(anchor=tk.W)
-        ttk.Label(
-            header,
-            text="支持复制/移动/重命名/删除/按大小拆分/文档拆分（标题分段 + 图片文字提取）",
-            style="HeaderSub.TLabel",
-        ).pack(anchor=tk.W, pady=(2, 0))
+        header = QFrame()
+        header_layout = QVBoxLayout(header)
+        header_layout.setContentsMargins(0, 0, 0, 0)
+        title = QLabel("FileOps")
+        title.setObjectName("titleLabel")
+        subtitle = QLabel("支持复制/移动/重命名/删除/按大小拆分/文档拆分（标题分段 + 图片文字提取）")
+        subtitle.setObjectName("subTitleLabel")
+        header_layout.addWidget(title)
+        header_layout.addWidget(subtitle)
+        root_layout.addWidget(header)
 
-        top = ttk.LabelFrame(page, text="基础配置", style="Card.TLabelframe", padding=10)
-        top.pack(fill=tk.X, pady=(0, 10))
+        config_group = QGroupBox("基础配置")
+        config_layout = QHBoxLayout(config_group)
+        config_layout.addWidget(QLabel("操作类型"))
+        self.operation_combo = QComboBox()
+        self.operation_combo.addItems(list(self.operation_label_to_value.keys()))
+        self.operation_combo.currentTextChanged.connect(self._sync_operation_fields)
+        config_layout.addWidget(self.operation_combo)
 
-        ttk.Label(top, text="操作类型").grid(row=0, column=0, sticky=tk.W)
-        self.operation_box = ttk.Combobox(
-            top,
-            textvariable=self.operation_label_var,
-            state="readonly",
-            values=list(self.operation_label_to_value.keys()),
-            width=18,
+        config_layout.addWidget(QLabel("工作区"))
+        self.workspace_edit = QLineEdit(str(Path.cwd()))
+        config_layout.addWidget(self.workspace_edit, 1)
+        browse_workspace_button = QPushButton("浏览")
+        browse_workspace_button.clicked.connect(self._select_workspace)
+        config_layout.addWidget(browse_workspace_button)
+        root_layout.addWidget(config_group)
+
+        source_group = QGroupBox("源文件列表")
+        source_layout = QHBoxLayout(source_group)
+        self.source_list = QListWidget()
+        source_layout.addWidget(self.source_list, 1)
+
+        source_button_layout = QVBoxLayout()
+        add_file_button = QPushButton("添加文件")
+        add_file_button.clicked.connect(self._add_files)
+        add_folder_button = QPushButton("添加文件夹")
+        add_folder_button.clicked.connect(self._add_folder)
+        remove_button = QPushButton("移除选中")
+        remove_button.clicked.connect(self._remove_selected_sources)
+        clear_button = QPushButton("清空列表")
+        clear_button.clicked.connect(self._clear_sources)
+
+        source_button_layout.addWidget(add_file_button)
+        source_button_layout.addWidget(add_folder_button)
+        source_button_layout.addWidget(remove_button)
+        source_button_layout.addWidget(clear_button)
+        source_button_layout.addStretch(1)
+        source_layout.addLayout(source_button_layout)
+        root_layout.addWidget(source_group)
+
+        options_group = QGroupBox("操作参数")
+        options_layout = QVBoxLayout(options_group)
+
+        row1 = QHBoxLayout()
+        row1.addWidget(QLabel("输出目录/目标路径"))
+        self.destination_edit = QLineEdit()
+        row1.addWidget(self.destination_edit, 1)
+        browse_dest_button = QPushButton("浏览")
+        browse_dest_button.clicked.connect(self._select_destination)
+        row1.addWidget(browse_dest_button)
+        options_layout.addLayout(row1)
+
+        row2 = QHBoxLayout()
+        row2.addWidget(QLabel("覆盖策略"))
+        self.overwrite_combo = QComboBox()
+        self.overwrite_combo.addItems(["never", "always", "rename"])
+        row2.addWidget(self.overwrite_combo)
+
+        row2.addWidget(QLabel("重命名模板"))
+        self.rename_pattern_edit = QLineEdit("{stem}_{index}{ext}")
+        row2.addWidget(self.rename_pattern_edit, 1)
+
+        row2.addWidget(QLabel("起始序号"))
+        self.start_index_spin = QSpinBox()
+        self.start_index_spin.setMinimum(1)
+        self.start_index_spin.setMaximum(999999)
+        self.start_index_spin.setValue(1)
+        row2.addWidget(self.start_index_spin)
+        options_layout.addLayout(row2)
+
+        row3 = QHBoxLayout()
+        self.trash_radio = QRadioButton("删除到回收站")
+        self.hard_delete_radio = QRadioButton("永久删除")
+        self.trash_radio.setChecked(True)
+        row3.addWidget(self.trash_radio)
+        row3.addWidget(self.hard_delete_radio)
+
+        row3.addSpacing(20)
+        row3.addWidget(QLabel("分片大小(MB)"))
+        self.split_size_spin = QDoubleSpinBox()
+        self.split_size_spin.setMinimum(0.01)
+        self.split_size_spin.setMaximum(20480.0)
+        self.split_size_spin.setDecimals(2)
+        self.split_size_spin.setValue(20.0)
+        row3.addWidget(self.split_size_spin)
+
+        row3.addSpacing(20)
+        row3.addWidget(QLabel("标题拆分规则"))
+        self.doc_mode_combo = QComboBox()
+        self.doc_mode_combo.addItems(list(self.doc_mode_label_to_value.keys()))
+        row3.addWidget(self.doc_mode_combo)
+
+        self.include_ocr_check = QCheckBox("提取图片文字（OCR）")
+        self.include_ocr_check.setChecked(True)
+        row3.addWidget(self.include_ocr_check)
+        row3.addStretch(1)
+        options_layout.addLayout(row3)
+
+        root_layout.addWidget(options_group)
+
+        run_group = QGroupBox("执行")
+        run_layout = QVBoxLayout(run_group)
+
+        run_row = QHBoxLayout()
+        self.dry_run_check = QCheckBox("预演模式（不写入）")
+        run_row.addWidget(self.dry_run_check)
+        run_row.addWidget(QLabel("报告文件"))
+        self.report_edit = QLineEdit()
+        run_row.addWidget(self.report_edit, 1)
+        save_report_button = QPushButton("另存为")
+        save_report_button.clicked.connect(self._select_report_file)
+        run_row.addWidget(save_report_button)
+
+        self.run_button = QPushButton("开始执行")
+        self.run_button.clicked.connect(self._execute_operation)
+        run_row.addWidget(self.run_button)
+        run_layout.addLayout(run_row)
+
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        run_layout.addWidget(self.progress_bar)
+
+        self.progress_label = QLabel("进度：未开始")
+        run_layout.addWidget(self.progress_label)
+        root_layout.addWidget(run_group)
+
+        log_group = QGroupBox("执行日志")
+        log_layout = QVBoxLayout(log_group)
+        self.log_text = QPlainTextEdit()
+        self.log_text.setReadOnly(True)
+        log_layout.addWidget(self.log_text)
+        root_layout.addWidget(log_group, 1)
+
+        self.status_label = QLabel("就绪")
+        root_layout.addWidget(self.status_label)
+
+    def _apply_styles(self) -> None:
+        self.setStyleSheet(
+            """
+            QWidget {
+                font-family: 'Microsoft YaHei UI';
+                font-size: 10pt;
+            }
+            QMainWindow {
+                background: #f3f6fb;
+            }
+            QGroupBox {
+                border: 1px solid #dbe2ef;
+                border-radius: 8px;
+                margin-top: 10px;
+                background: #ffffff;
+                font-weight: 600;
+                color: #1e293b;
+                padding-top: 8px;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 6px;
+            }
+            QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QListWidget, QPlainTextEdit {
+                border: 1px solid #cbd5e1;
+                border-radius: 6px;
+                padding: 4px 6px;
+                background: #ffffff;
+                color: #0f172a;
+            }
+            QPushButton {
+                background: #e2e8f0;
+                border: 1px solid #cbd5e1;
+                border-radius: 6px;
+                padding: 6px 12px;
+            }
+            QPushButton:hover {
+                background: #d5deea;
+            }
+            QPushButton:disabled {
+                color: #94a3b8;
+                background: #f1f5f9;
+            }
+            QProgressBar {
+                border: 1px solid #cbd5e1;
+                border-radius: 6px;
+                text-align: center;
+                background: #e2e8f0;
+            }
+            QProgressBar::chunk {
+                background: #3b82f6;
+                border-radius: 5px;
+            }
+            #titleLabel {
+                font-size: 22px;
+                font-weight: 700;
+                color: #0f172a;
+            }
+            #subTitleLabel {
+                color: #475569;
+            }
+            """
         )
-        self.operation_box.grid(row=0, column=1, padx=(8, 18), sticky=tk.W)
-        self.operation_box.bind("<<ComboboxSelected>>", lambda _event: self._sync_operation_fields())
-
-        ttk.Label(top, text="工作区").grid(row=0, column=2, sticky=tk.W)
-        ttk.Entry(top, textvariable=self.workspace_var, width=74).grid(row=0, column=3, padx=8, sticky=tk.EW)
-        ttk.Button(top, text="浏览", command=self._select_workspace).grid(row=0, column=4, padx=(6, 0), sticky=tk.W)
-        top.grid_columnconfigure(3, weight=1)
-
-        source_frame = ttk.LabelFrame(page, text="源文件列表", style="Card.TLabelframe", padding=10)
-        source_frame.pack(fill=tk.BOTH, expand=False, pady=(0, 10))
-
-        self.source_list = tk.Listbox(
-            source_frame,
-            height=8,
-            selectmode=tk.EXTENDED,
-            bg="#f8fafc",
-            fg="#0f172a",
-            relief=tk.FLAT,
-            highlightthickness=1,
-            highlightbackground="#cbd5e1",
-            highlightcolor="#93c5fd",
-            font=("Microsoft YaHei UI", 10),
-        )
-        self.source_list.grid(row=0, column=0, rowspan=4, sticky=tk.NSEW)
-
-        scrollbar = ttk.Scrollbar(source_frame, orient=tk.VERTICAL, command=self.source_list.yview)
-        scrollbar.grid(row=0, column=1, rowspan=4, sticky=tk.NS)
-        self.source_list.configure(yscrollcommand=scrollbar.set)
-
-        ttk.Button(source_frame, text="添加文件", command=self._add_files).grid(row=0, column=2, padx=(10, 0), pady=(0, 6), sticky=tk.EW)
-        ttk.Button(source_frame, text="添加文件夹", command=self._add_folder).grid(row=1, column=2, padx=(10, 0), pady=6, sticky=tk.EW)
-        ttk.Button(source_frame, text="移除选中", command=self._remove_selected_sources).grid(row=2, column=2, padx=(10, 0), pady=6, sticky=tk.EW)
-        ttk.Button(source_frame, text="清空列表", command=self._clear_sources).grid(row=3, column=2, padx=(10, 0), pady=(6, 0), sticky=tk.EW)
-
-        source_frame.grid_columnconfigure(0, weight=1)
-        source_frame.grid_rowconfigure(0, weight=1)
-
-        options_frame = ttk.LabelFrame(page, text="操作参数", style="Card.TLabelframe", padding=10)
-        options_frame.pack(fill=tk.X, pady=(0, 10))
-
-        ttk.Label(options_frame, text="输出目录/目标路径").grid(row=0, column=0, sticky=tk.W)
-        self.destination_entry = ttk.Entry(options_frame, textvariable=self.destination_var, width=74)
-        self.destination_entry.grid(row=0, column=1, padx=8, sticky=tk.EW)
-        self.destination_button = ttk.Button(options_frame, text="浏览", command=self._select_destination)
-        self.destination_button.grid(row=0, column=2, padx=(6, 0), sticky=tk.W)
-
-        ttk.Label(options_frame, text="覆盖策略").grid(row=1, column=0, sticky=tk.W, pady=(8, 0))
-        self.overwrite_box = ttk.Combobox(
-            options_frame,
-            textvariable=self.overwrite_var,
-            state="readonly",
-            values=["never", "always", "rename"],
-            width=14,
-        )
-        self.overwrite_box.grid(row=1, column=1, sticky=tk.W, pady=(8, 0))
-
-        ttk.Label(options_frame, text="重命名模板").grid(row=2, column=0, sticky=tk.W, pady=(8, 0))
-        self.rename_entry = ttk.Entry(options_frame, textvariable=self.rename_pattern_var, width=45)
-        self.rename_entry.grid(row=2, column=1, padx=8, sticky=tk.W, pady=(8, 0))
-
-        ttk.Label(options_frame, text="起始序号").grid(row=2, column=2, sticky=tk.E, pady=(8, 0))
-        self.start_index_spin = ttk.Spinbox(options_frame, from_=1, to=999999, textvariable=self.start_index_var, width=8)
-        self.start_index_spin.grid(row=2, column=3, sticky=tk.W, pady=(8, 0), padx=(8, 0))
-
-        self.delete_trash_radio = ttk.Radiobutton(options_frame, text="删除到回收站", variable=self.use_trash_var, value=True)
-        self.delete_trash_radio.grid(row=3, column=0, sticky=tk.W, pady=(8, 0))
-        self.delete_hard_radio = ttk.Radiobutton(options_frame, text="永久删除", variable=self.use_trash_var, value=False)
-        self.delete_hard_radio.grid(row=3, column=1, sticky=tk.W, pady=(8, 0))
-
-        ttk.Label(options_frame, text="分片大小(MB)").grid(row=4, column=0, sticky=tk.W, pady=(8, 0))
-        self.file_split_size_entry = ttk.Entry(options_frame, textvariable=self.file_split_size_var, width=12)
-        self.file_split_size_entry.grid(row=4, column=1, sticky=tk.W, pady=(8, 0))
-
-        ttk.Label(options_frame, text="标题拆分规则").grid(row=5, column=0, sticky=tk.W, pady=(8, 0))
-        self.doc_mode_box = ttk.Combobox(
-            options_frame,
-            textvariable=self.doc_mode_label_var,
-            state="readonly",
-            values=list(self.doc_mode_label_to_value.keys()),
-            width=22,
-        )
-        self.doc_mode_box.grid(row=5, column=1, sticky=tk.W, pady=(8, 0))
-
-        self.include_image_text_check = ttk.Checkbutton(options_frame, text="提取图片文字（OCR）", variable=self.include_image_text_var)
-        self.include_image_text_check.grid(row=5, column=2, columnspan=2, sticky=tk.W, pady=(8, 0), padx=(16, 0))
-
-        options_frame.grid_columnconfigure(1, weight=1)
-
-        run_frame = ttk.LabelFrame(page, text="执行", style="Card.TLabelframe", padding=10)
-        run_frame.pack(fill=tk.X, pady=(0, 10))
-
-        ttk.Checkbutton(run_frame, text="预演模式（不写入）", variable=self.dry_run_var).grid(row=0, column=0, sticky=tk.W)
-        ttk.Label(run_frame, text="报告文件").grid(row=0, column=1, padx=(20, 0), sticky=tk.W)
-        ttk.Entry(run_frame, textvariable=self.report_path_var, width=58).grid(row=0, column=2, padx=8, sticky=tk.EW)
-        ttk.Button(run_frame, text="另存为", command=self._select_report_file).grid(row=0, column=3, padx=(6, 0), sticky=tk.W)
-
-        self.run_button = ttk.Button(run_frame, text="开始执行", style="Primary.TButton", command=self._execute_operation)
-        self.run_button.grid(row=0, column=4, padx=(16, 0), sticky=tk.E)
-
-        self.progress = ttk.Progressbar(
-            run_frame,
-            style="Progress.Horizontal.TProgressbar",
-            mode="determinate",
-            maximum=100,
-            variable=self.progress_var,
-        )
-        self.progress.grid(row=1, column=0, columnspan=5, sticky=tk.EW, pady=(10, 4))
-
-        ttk.Label(run_frame, textvariable=self.progress_text_var, foreground="#334155").grid(row=2, column=0, columnspan=5, sticky=tk.W)
-
-        run_frame.grid_columnconfigure(2, weight=1)
-
-        log_frame = ttk.LabelFrame(page, text="执行日志", style="Card.TLabelframe", padding=10)
-        log_frame.pack(fill=tk.BOTH, expand=True)
-
-        self.log_text = tk.Text(
-            log_frame,
-            height=14,
-            wrap=tk.WORD,
-            bg="#0f172a",
-            fg="#e2e8f0",
-            insertbackground="#e2e8f0",
-            relief=tk.FLAT,
-            highlightthickness=1,
-            highlightbackground="#334155",
-            font=("Consolas", 10),
-        )
-        self.log_text.pack(fill=tk.BOTH, expand=True)
-
-        status_bar = ttk.Frame(page, style="Page.TFrame")
-        status_bar.pack(fill=tk.X, pady=(8, 0))
-        ttk.Label(status_bar, textvariable=self.status_var, foreground="#334155").pack(anchor=tk.W)
 
     def _current_operation(self) -> str:
-        return self.operation_label_to_value[self.operation_label_var.get()]
+        label = self.operation_combo.currentText().strip()
+        return self.operation_label_to_value.get(label, "copy")
+
+    def _set_widget_enabled(self, widget: QWidget, enabled: bool) -> None:
+        widget.setEnabled(enabled)
 
     def _sync_operation_fields(self) -> None:
-        op = self._current_operation()
+        operation = self._current_operation()
 
-        show_destination = op in {"copy", "move", "split", "doc_split"}
-        show_overwrite = op in {"copy", "move", "rename", "split"}
-        show_rename = op == "rename"
-        show_delete = op == "delete"
-        show_file_split = op == "split"
-        show_doc_split = op == "doc_split"
+        show_destination = operation in {"copy", "move", "split", "doc_split"}
+        show_overwrite = operation in {"copy", "move", "rename", "split"}
+        show_rename = operation == "rename"
+        show_delete = operation == "delete"
+        show_split = operation == "split"
+        show_doc_split = operation == "doc_split"
 
-        self._set_state(self.destination_entry, show_destination)
-        self._set_state(self.destination_button, show_destination)
-
-        self._set_state(self.overwrite_box, show_overwrite, readonly=True)
-        self._set_state(self.rename_entry, show_rename)
-        self._set_state(self.start_index_spin, show_rename)
-
-        self._set_state(self.delete_trash_radio, show_delete)
-        self._set_state(self.delete_hard_radio, show_delete)
-
-        self._set_state(self.file_split_size_entry, show_file_split)
-
-        self._set_state(self.doc_mode_box, show_doc_split, readonly=True)
-        self._set_state(self.include_image_text_check, show_doc_split)
-
-    def _set_state(self, widget: ttk.Widget, enabled: bool, readonly: bool = False) -> None:
-        if not enabled:
-            widget.configure(state="disabled")
-            return
-        widget.configure(state="readonly" if readonly else "normal")
+        self._set_widget_enabled(self.destination_edit, show_destination)
+        self._set_widget_enabled(self.overwrite_combo, show_overwrite)
+        self._set_widget_enabled(self.rename_pattern_edit, show_rename)
+        self._set_widget_enabled(self.start_index_spin, show_rename)
+        self._set_widget_enabled(self.trash_radio, show_delete)
+        self._set_widget_enabled(self.hard_delete_radio, show_delete)
+        self._set_widget_enabled(self.split_size_spin, show_split)
+        self._set_widget_enabled(self.doc_mode_combo, show_doc_split)
+        self._set_widget_enabled(self.include_ocr_check, show_doc_split)
 
     def _set_running(self, running: bool) -> None:
-        if running:
-            self.run_button.configure(state="disabled")
-            self.operation_box.configure(state="disabled")
-        else:
-            self.run_button.configure(state="normal")
-            self.operation_box.configure(state="readonly")
+        self.run_button.setEnabled(not running)
+        self.operation_combo.setEnabled(not running)
 
     def _append_log(self, text: str) -> None:
-        self.log_text.insert(tk.END, text + "\n")
-        self.log_text.see(tk.END)
+        self.log_text.appendPlainText(text)
 
-    def _thread_log(self, text: str) -> None:
-        self.root.after(0, lambda: self._append_log(text))
+    def _on_worker_progress(self, done: int, total: int, detail: str) -> None:
+        percent = 100 if total == 0 else int((done / total) * 100)
+        self.progress_bar.setValue(percent)
+        self.progress_label.setText(f"进度：{done}/{total}（{percent}%）  {detail}")
 
-    def _thread_progress(self, done: int, total: int, detail: str) -> None:
-        def apply() -> None:
-            percent = 100.0 if total == 0 else (done / total) * 100.0
-            self.progress_var.set(percent)
-            self.progress_text_var.set(f"进度：{done}/{total}（{percent:.0f}%）  {detail}")
+    def _on_worker_log(self, text: str) -> None:
+        self._append_log(text)
 
-        self.root.after(0, apply)
+    def _on_worker_finished(self, status: str, is_error: bool) -> None:
+        self._set_running(False)
+        self.status_label.setText(status)
+        if is_error:
+            QMessageBox.critical(self, "执行结果", status)
+        else:
+            QMessageBox.information(self, "执行结果", status)
+
+        if self.worker is not None:
+            self.worker.deleteLater()
+            self.worker = None
 
     def _select_workspace(self) -> None:
-        selected = filedialog.askdirectory(initialdir=self.workspace_var.get() or str(Path.cwd()))
+        selected = QFileDialog.getExistingDirectory(self, "选择工作区", self.workspace_edit.text().strip() or str(Path.cwd()))
         if selected:
-            self.workspace_var.set(selected)
+            self.workspace_edit.setText(selected)
 
     def _select_destination(self) -> None:
-        selected = filedialog.askdirectory(initialdir=self.workspace_var.get() or str(Path.cwd()))
+        selected = QFileDialog.getExistingDirectory(self, "选择输出目录", self.workspace_edit.text().strip() or str(Path.cwd()))
         if selected:
-            self.destination_var.set(selected)
+            self.destination_edit.setText(selected)
 
     def _select_report_file(self) -> None:
-        selected = filedialog.asksaveasfilename(
-            defaultextension=".json",
-            filetypes=[("JSON 文件", "*.json"), ("全部文件", "*.*")],
-            initialdir=self.workspace_var.get() or str(Path.cwd()),
+        selected, _ = QFileDialog.getSaveFileName(
+            self,
+            "选择报告文件",
+            self.workspace_edit.text().strip() or str(Path.cwd()),
+            "JSON 文件 (*.json);;全部文件 (*.*)",
         )
         if selected:
-            self.report_path_var.set(selected)
+            self.report_edit.setText(selected)
 
     def _add_files(self) -> None:
-        files = filedialog.askopenfilenames(initialdir=self.workspace_var.get() or str(Path.cwd()))
-        for item in files:
-            self._append_source(item)
+        files, _ = QFileDialog.getOpenFileNames(self, "选择文件", self.workspace_edit.text().strip() or str(Path.cwd()))
+        for file_path in files:
+            self._append_source(file_path)
 
     def _add_folder(self) -> None:
-        selected = filedialog.askdirectory(initialdir=self.workspace_var.get() or str(Path.cwd()))
+        selected = QFileDialog.getExistingDirectory(self, "选择文件夹", self.workspace_edit.text().strip() or str(Path.cwd()))
         if selected:
             self._append_source(selected)
 
     def _append_source(self, value: str) -> None:
-        existing = set(self.source_list.get(0, tk.END))
-        if value not in existing:
-            self.source_list.insert(tk.END, value)
+        for idx in range(self.source_list.count()):
+            if self.source_list.item(idx).text() == value:
+                return
+        self.source_list.addItem(QListWidgetItem(value))
 
     def _remove_selected_sources(self) -> None:
-        selected_indexes = list(self.source_list.curselection())
-        for idx in reversed(selected_indexes):
-            self.source_list.delete(idx)
+        for item in self.source_list.selectedItems():
+            self.source_list.takeItem(self.source_list.row(item))
 
     def _clear_sources(self) -> None:
-        self.source_list.delete(0, tk.END)
+        self.source_list.clear()
+
+    def _collect_parameters(self) -> dict[str, object]:
+        operation = self._current_operation()
+        workspace = Path(self.workspace_edit.text().strip() or ".").resolve(strict=False)
+
+        sources: list[Path] = []
+        for idx in range(self.source_list.count()):
+            sources.append(Path(self.source_list.item(idx).text()).resolve(strict=False))
+        if not sources:
+            raise ValueError("请先添加至少一个源文件或目录。")
+
+        params: dict[str, object] = {
+            "operation": operation,
+            "workspace": workspace,
+            "sources": sources,
+            "dry_run": self.dry_run_check.isChecked(),
+            "overwrite": self.overwrite_combo.currentText().strip() or "never",
+            "report_path": self.report_edit.text().strip(),
+        }
+
+        if operation in {"copy", "move", "split", "doc_split"}:
+            dest_text = self.destination_edit.text().strip()
+            if not dest_text:
+                raise ValueError("该操作需要指定输出目录/目标路径。")
+            params["destination"] = Path(dest_text).resolve(strict=False)
+
+        if operation == "rename":
+            pattern = self.rename_pattern_edit.text().strip()
+            if not pattern:
+                raise ValueError("请填写重命名模板。")
+            params["pattern"] = pattern
+            params["start_index"] = int(self.start_index_spin.value())
+
+        if operation == "delete":
+            params["use_trash"] = self.trash_radio.isChecked()
+
+        if operation == "split":
+            params["split_size_mb"] = float(self.split_size_spin.value())
+
+        if operation == "doc_split":
+            params["heading_mode"] = self.doc_mode_label_to_value[self.doc_mode_combo.currentText()]
+            params["include_image_text"] = self.include_ocr_check.isChecked()
+
+        return params
 
     def _execute_operation(self) -> None:
-        if self.run_button.instate(["disabled"]):
+        if self.worker is not None:
             return
 
         try:
             params = self._collect_parameters()
         except ValueError as exc:
-            messagebox.showerror("参数错误", str(exc))
+            QMessageBox.critical(self, "参数错误", str(exc))
             return
 
-        if self._current_operation() == "delete" and not params["dry_run"] and not bool(params.get("use_trash", True)):
-            confirmed = messagebox.askyesno("确认永久删除", "你选择了“永久删除”，该操作不可恢复，是否继续？")
-            if not confirmed:
+        if self._current_operation() == "delete" and not bool(params["dry_run"]) and not bool(params.get("use_trash", True)):
+            confirmed = QMessageBox.question(
+                self,
+                "确认永久删除",
+                "你选择了“永久删除”，该操作不可恢复，是否继续？",
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No,
+            )
+            if confirmed != QMessageBox.Yes:
                 return
 
-        self.progress_var.set(0.0)
-        self.progress_text_var.set("进度：0/0（0%）  准备中...")
-        self.status_var.set("执行中...")
         self._set_running(True)
+        self.progress_bar.setValue(0)
+        self.progress_label.setText("进度：0/0（0%）  准备中...")
+        self.status_label.setText("执行中...")
         self._append_log("----------------------------------------")
-        self._append_log(f"开始执行：{self.operation_label_var.get()}")
+        self._append_log(f"开始执行：{self.operation_combo.currentText()}")
 
-        worker = threading.Thread(target=self._run_operation, args=(params,), daemon=True)
-        worker.start()
-
-    def _collect_parameters(self) -> dict[str, object]:
-        operation = self._current_operation()
-        workspace = Path(self.workspace_var.get().strip() or ".").resolve(strict=False)
-
-        source_values = list(self.source_list.get(0, tk.END))
-        sources = [Path(item).resolve(strict=False) for item in source_values]
-        if not sources:
-            raise ValueError("请先添加至少一个源文件或目录。")
-
-        dry_run = bool(self.dry_run_var.get())
-        overwrite = self.overwrite_var.get().strip() or "never"
-
-        payload: dict[str, object] = {
-            "operation": operation,
-            "workspace": workspace,
-            "sources": sources,
-            "dry_run": dry_run,
-            "overwrite": overwrite,
-            "report_path": self.report_path_var.get().strip(),
-        }
-
-        if operation in {"copy", "move", "split", "doc_split"}:
-            destination_text = self.destination_var.get().strip()
-            if not destination_text:
-                raise ValueError("该操作需要指定输出目录/目标路径。")
-            payload["destination"] = Path(destination_text).resolve(strict=False)
-
-        if operation == "rename":
-            pattern = self.rename_pattern_var.get().strip()
-            if not pattern:
-                raise ValueError("请填写重命名模板。")
-            payload["pattern"] = pattern
-            payload["start_index"] = int(self.start_index_var.get())
-
-        if operation == "delete":
-            payload["use_trash"] = bool(self.use_trash_var.get())
-
-        if operation == "split":
-            try:
-                split_size_mb = float(self.file_split_size_var.get().strip())
-            except ValueError as exc:
-                raise ValueError("分片大小必须是数字（单位 MB）。") from exc
-            if split_size_mb <= 0:
-                raise ValueError("分片大小必须大于 0。")
-            payload["split_size_mb"] = split_size_mb
-
-        if operation == "doc_split":
-            payload["heading_mode"] = self.doc_mode_label_to_value[self.doc_mode_label_var.get()]
-            payload["include_image_text"] = bool(self.include_image_text_var.get())
-
-        return payload
-
-    def _run_single(
-        self,
-        operation: str,
-        source: Path,
-        params: dict[str, object],
-        rename_index: int,
-    ) -> list[OperationResult]:
-        workspace = Path(params["workspace"])
-        dry_run = bool(params["dry_run"])
-
-        if operation in {"copy", "move", "rename", "split"}:
-            common = CommonOptions(
-                workspace=workspace,
-                dry_run=dry_run,
-                overwrite=str(params["overwrite"]),
-            )
-
-            if operation == "copy":
-                return copy_items([source], Path(params["destination"]), common)
-            if operation == "move":
-                return move_items([source], Path(params["destination"]), common)
-            if operation == "rename":
-                return rename_items([source], str(params["pattern"]), rename_index, common)
-            return split_items([source], Path(params["destination"]), float(params["split_size_mb"]), common)
-
-        if operation == "doc_split":
-            return split_documents_by_structure(
-                sources=[source],
-                destination=Path(params["destination"]),
-                workspace=workspace,
-                dry_run=dry_run,
-                heading_mode=str(params["heading_mode"]),
-                include_image_text=bool(params["include_image_text"]),
-            )
-
-        return delete_items(
-            sources=[source],
-            workspace=workspace,
-            dry_run=dry_run,
-            use_trash=bool(params["use_trash"]),
-        )
-
-    def _run_operation(self, params: dict[str, object]) -> None:
-        operation = str(params["operation"])
-        sources = list(params["sources"])
-        report = RunReport(command=operation, dry_run_mode=bool(params["dry_run"]), workspace=str(params["workspace"]))
-        total = len(sources)
-
-        status_map = {
-            "success": "成功",
-            "failed": "失败",
-            "skipped": "跳过",
-            "dry_run": "预演",
-        }
-
-        try:
-            for idx, source in enumerate(sources, start=1):
-                self._thread_progress(idx - 1, total, f"处理中：{source.name}")
-                self._thread_log(f"[{idx}/{total}] 开始处理：{source}")
-
-                results = self._run_single(operation, source, params, rename_index=int(params.get("start_index", 1)) + idx - 1)
-                for item in results:
-                    report.add(item)
-                    op_label = self.operation_value_to_label.get(item.operation, item.operation)
-                    status_text = status_map.get(item.status.value, item.status.value)
-                    self._thread_log(f"[{status_text}] {op_label} | {item.source} -> {item.destination} | {item.message}")
-
-                self._thread_progress(idx, total, f"已完成：{source.name}")
-
-            report_path_text = str(params["report_path"]).strip()
-            output_path = write_report(report, Path(report_path_text).resolve(strict=False)) if report_path_text else None
-
-            summary = report.summary()
-            self._thread_log("")
-            self._thread_log(
-                "汇总: "
-                f"总数={summary['total']} 成功={summary['success']} 预演={summary['dry_run']} "
-                f"跳过={summary['skipped']} 失败={summary['failed']}"
-            )
-            if output_path is not None:
-                self._thread_log(f"报告输出: {output_path}")
-
-            has_failure = summary["failed"] > 0
-            final_status = "执行完成（存在失败）" if has_failure else "执行完成"
-            self.root.after(0, lambda: self._finish_run(final_status, has_failure))
-
-        except Exception as exc:  # noqa: BLE001
-            self.root.after(0, lambda: self._finish_run(f"执行失败：{exc}", True))
-
-    def _finish_run(self, status: str, is_error: bool) -> None:
-        self.status_var.set(status)
-        self._set_running(False)
-
-        if is_error:
-            messagebox.showerror("执行结果", status)
-        else:
-            messagebox.showinfo("执行结果", status)
+        self.worker = OperationWorker(params, self.operation_value_to_label)
+        self.worker.progress_changed.connect(self._on_worker_progress)
+        self.worker.log_message.connect(self._on_worker_log)
+        self.worker.finished_status.connect(self._on_worker_finished)
+        self.worker.start()
 
 
 def launch_gui() -> None:
-    root = tk.Tk()
-    FileOpsGUI(root)
-    root.mainloop()
+    app = QApplication.instance() or QApplication(sys.argv)
+    window = FileOpsWindow()
+    window.show()
+    app.exec()
 
 
 if __name__ == "__main__":
