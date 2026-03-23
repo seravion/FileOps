@@ -1,4 +1,4 @@
-﻿param(
+param(
     [string]$PythonExe = "python",
     [switch]$Clean
 )
@@ -98,6 +98,7 @@ else {
 }
 
 Invoke-Checked -Command $venvPython -Arguments @("-m", "pip", "install", "--no-build-isolation", "--no-deps", ".")
-Invoke-Checked -Command ".\.venv\Scripts\pyinstaller.exe" -Arguments @("--clean", "--noconfirm", "--onefile", "--name", "fileops", "--paths", "src", "scripts/entrypoint.py")
+Invoke-Checked -Command ".\.venv\Scripts\pyinstaller.exe" -Arguments @("--clean", "--noconfirm", "--windowed", "--onefile", "--name", "fileops", "--paths", "src", "scripts/entrypoint.py")
 
 Write-Host "Build completed: dist\\fileops.exe"
+
