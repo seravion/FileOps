@@ -14,8 +14,9 @@ powershell -ExecutionPolicy Bypass -File scripts/build_installer.ps1
 Expected output:
 - `dist/FileOps-Setup.exe`
 
-## 3. Install and Verify
-After installation, launch `FileOps` from Start Menu and verify:
-- Window opens successfully
-- You can add source files/folders
-- You can run copy/move/rename/delete through the UI
+## 3. Verify GUI Features
+After launch, verify these operations in the GUI:
+- copy / move / rename / delete
+- split by size
+- document split by heading levels
+- optional OCR extraction for image text

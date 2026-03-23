@@ -81,7 +81,7 @@ if (-not (Test-Path ".venv\\Scripts\\python.exe")) {
 $venvPython = ".\.venv\Scripts\python.exe"
 Invoke-Checked -Command $venvPython -Arguments @("-m", "pip", "install", "--upgrade", "pip")
 
-$requiredModules = @("pytest", "PyInstaller", "hatchling", "send2trash")
+$requiredModules = @("pytest", "PyInstaller", "hatchling", "send2trash", "docx", "PIL", "pytesseract")
 $missing = @()
 foreach ($module in $requiredModules) {
     if (-not (Test-Module -PythonPath $venvPython -Module $module)) {
@@ -101,4 +101,5 @@ Invoke-Checked -Command $venvPython -Arguments @("-m", "pip", "install", "--no-b
 Invoke-Checked -Command ".\.venv\Scripts\pyinstaller.exe" -Arguments @("--clean", "--noconfirm", "--windowed", "--onefile", "--name", "fileops", "--paths", "src", "scripts/entrypoint.py")
 
 Write-Host "Build completed: dist\\fileops.exe"
+
 

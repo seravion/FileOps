@@ -1,6 +1,7 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import glob
+import math
 import shutil
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -199,6 +200,85 @@ def delete_items(
     return results
 
 
+def split_items(
+    sources: Sequence[Path],
+    destination: Path,
+    chunk_size_mb: float,
+    options: CommonOptions,
+) -> list[OperationResult]:
+    _validate_overwrite(options.overwrite)
+    if chunk_size_mb <= 0:
+        raise ValueError("Split chunk size must be greater than 0 MB.")
+
+    destination = destination.resolve(strict=False)
+    ensure_workspace_path(destination, options.workspace)
+
+    chunk_size_bytes = int(chunk_size_mb * 1024 * 1024)
+    if chunk_size_bytes <= 0:
+        raise ValueError("Split chunk size is too small.")
+
+    if not options.dry_run:
+        destination.mkdir(parents=True, exist_ok=True)
+
+    results: list[OperationResult] = []
+
+    for source in sources:
+        started = datetime.now()
+        started_at = now_iso()
+
+        try:
+            ensure_workspace_path(source, options.workspace)
+            if not source.exists():
+                raise FileNotFoundError(f"Source does not exist: {source}")
+            if source.is_dir():
+                raise IsADirectoryError(f"Split supports files only: {source}")
+
+            file_size = source.stat().st_size
+            part_count = max(1, math.ceil(file_size / chunk_size_bytes))
+
+            target_paths: list[Path] = []
+            note_messages: list[str] = []
+            conflict_message: str | None = None
+
+            for part_index in range(1, part_count + 1):
+                candidate = _build_split_part_path(source, destination, part_index)
+                resolved, note = _resolve_conflict(candidate, options)
+                if resolved is None:
+                    conflict_message = note or f"Destination exists: {candidate}"
+                    break
+                target_paths.append(resolved)
+                if note:
+                    note_messages.append(note)
+
+            if conflict_message:
+                results.append(_build_result("split", source, None, OperationStatus.SKIPPED, conflict_message, started, started_at))
+                continue
+
+            if options.dry_run:
+                message = f"Would split into {part_count} part(s) at {destination}"
+                if note_messages:
+                    message = f"{message}. {note_messages[0]}"
+                results.append(_build_result("split", source, destination, OperationStatus.DRY_RUN, message, started, started_at))
+                continue
+
+            with source.open("rb") as reader:
+                for target in target_paths:
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    chunk = reader.read(chunk_size_bytes)
+                    with target.open("wb") as writer:
+                        writer.write(chunk)
+
+            message = f"Split completed: {len(target_paths)} part(s) in {destination}"
+            if note_messages:
+                message = f"{message}. {note_messages[0]}"
+            results.append(_build_result("split", source, destination, OperationStatus.SUCCESS, message, started, started_at))
+
+        except Exception as exc:  # noqa: BLE001
+            results.append(_build_result("split", source, None, OperationStatus.FAILED, str(exc), started, started_at))
+
+    return results
+
+
 def _run_transfer(
     operation: str,
     source: Path,
@@ -292,6 +372,10 @@ def _glob_or_path(pattern: str, recursive: bool) -> list[Path]:
 
     globbed = sorted(glob.glob(pattern, recursive=recursive))
     return [Path(item) for item in globbed]
+
+
+def _build_split_part_path(source: Path, destination: Path, part_index: int) -> Path:
+    return destination / f"{source.stem}.part{part_index:03d}{source.suffix}"
 
 
 def _build_result(

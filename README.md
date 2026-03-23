@@ -1,54 +1,54 @@
-# FileOps
-Desktop file operation tool with a click-based UI for `copy`, `move`, `rename`, and `delete`.
+﻿# FileOps
 
-## Features
-- Click-based desktop UI (no command-line required for end users)
-- Supports `copy`, `move`, `rename`, `delete`
-- Built-in safety defaults: confirmation, workspace boundary checks, conflict policy
-- Supports `Dry Run` preview mode in UI
-- Supports JSON execution report export
-- Windows `.exe` and installer packaging support
+FileOps 是一个桌面文件处理工具，支持图形界面点击操作。
 
-## Repository Layout
-- `src/fileops/gui.py`: desktop UI
-- `src/fileops/operations.py`: core operation logic
-- `scripts/build_exe.ps1`: build one-file GUI `fileops.exe`
-- `scripts/build_installer.ps1`: build installer via Inno Setup
-- `installer/FileOps.iss`: Inno Setup configuration
-- `tests/`: pytest tests
+## 功能
+- 复制、移动、重命名、删除
+- 按大小拆分文件（MB）
+- 文档拆分（按一级标题、二级标题、一级+二级标题）
+- 可选提取图片文字（OCR）
+- 预演模式（Dry Run）
+- JSON 报告导出
 
-## Run From Source
-Prerequisites:
-- Python 3.11+
+## 图形界面说明
+- 操作类型选择：在“操作类型”下拉中选择对应功能
+- 文档拆分：
+  - 选择“文档拆分”
+  - 添加 `.docx` / `.md` / `.txt` 文档
+  - 设置输出目录
+  - 设置“标题拆分规则”（一级、二级、一级+二级）
+  - 勾选“提取图片文字（OCR）”可尝试识别文档中的图片文字
+- 按大小拆分：
+  - 选择“按大小拆分”
+  - 设置“分片大小(MB)”
 
-Setup:
+## 运行与打包
+### 本地运行
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\activate
 pip install -U pip
 pip install . -r requirements-dev.txt
-```
-
-Launch UI:
-```powershell
 python scripts/entrypoint.py
 ```
 
-Run tests:
+### 运行测试
 ```powershell
 pytest
 ```
 
-## Build GUI EXE
+### 构建 GUI EXE
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/build_exe.ps1
 ```
-Output:
-- `dist/fileops.exe`
+输出：`dist/fileops.exe`
 
-## Build Installer
+### 构建安装包
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/build_installer.ps1
 ```
-Output:
-- `dist/FileOps-Setup.exe`
+输出：`dist/FileOps-Setup.exe`
+
+## OCR 说明
+- 图片文字识别依赖 `pytesseract` 与本机 Tesseract OCR。
+- 如未安装 Tesseract，文档拆分仍可执行，但图片文字可能无法识别。
