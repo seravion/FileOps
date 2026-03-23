@@ -12,7 +12,7 @@ class OperationStatus(str, Enum):
     DRY_RUN = "dry_run"
 
 
-@dataclass(slots=True)
+@dataclass
 class OperationResult:
     operation: str
     source: str
@@ -36,7 +36,7 @@ class OperationResult:
         }
 
 
-@dataclass(slots=True)
+@dataclass
 class RunReport:
     command: str
     dry_run_mode: bool

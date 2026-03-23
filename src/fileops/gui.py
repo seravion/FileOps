@@ -35,15 +35,186 @@ from .operations import CommonOptions, copy_items, delete_items, move_items, ren
 from .reporting import write_report
 
 
+TRANSLATIONS: dict[str, dict[str, str]] = {
+    "zh": {
+        "window_title": "FileOps 文件操作工具",
+        "subtitle": "支持复制/移动/重命名/删除/按大小拆分/文档拆分（标题分段 + 图片文字提取）",
+        "group_basic": "基础配置",
+        "label_operation": "操作类型",
+        "label_language": "语言",
+        "label_workspace": "工作区（安全范围）",
+        "button_browse": "浏览",
+        "group_sources": "源文件列表",
+        "button_add_file": "添加文件",
+        "button_add_folder": "添加文件夹",
+        "button_remove_selected": "移除选中",
+        "button_clear_list": "清空列表",
+        "group_options": "操作参数",
+        "label_destination": "输出目录/目标路径",
+        "label_overwrite": "覆盖策略",
+        "label_rename_pattern": "重命名模板",
+        "label_start_index": "起始序号",
+        "radio_trash": "删除到回收站",
+        "radio_hard_delete": "永久删除",
+        "label_split_size": "分片大小(MB)",
+        "label_doc_mode": "标题拆分规则",
+        "check_include_ocr": "提取图片文字（OCR）",
+        "group_run": "执行",
+        "check_dry_run": "预演模式（不写入）",
+        "label_report_file": "报告文件",
+        "button_save_as": "另存为",
+        "button_run": "开始执行",
+        "group_log": "执行日志",
+        "status_ready": "就绪",
+        "status_running": "执行中...",
+        "progress_not_started": "进度：未开始",
+        "progress_preparing": "进度：0/0（0%）  准备中...",
+        "progress_runtime": "进度：{done}/{total}（{percent}%）  {detail}",
+        "dialog_result_title": "执行结果",
+        "dialog_select_workspace": "选择工作区",
+        "dialog_select_destination": "选择输出目录",
+        "dialog_select_report_file": "选择报告文件",
+        "dialog_select_file": "选择文件",
+        "dialog_select_folder": "选择文件夹",
+        "dialog_json_filter": "JSON 文件 (*.json);;全部文件 (*.*)",
+        "dialog_param_error_title": "参数错误",
+        "dialog_confirm_delete_title": "确认永久删除",
+        "dialog_confirm_delete_text": "你选择了“永久删除”，该操作不可恢复，是否继续？",
+        "error_workspace_diff_disk": "工作区与源路径不在同一磁盘，请调整为同一盘后重试。",
+        "error_workspace_infer": "无法自动推导工作区，请手动设置。",
+        "workspace_auto_adjusted": "自动调整工作区为：{workspace}",
+        "error_no_sources": "请先添加至少一个源文件或目录。",
+        "error_missing_destination": "该操作需要指定输出目录/目标路径。",
+        "error_missing_pattern": "请填写重命名模板。",
+        "log_start_execution": "开始执行：{operation}",
+        "op_copy": "复制",
+        "op_move": "移动",
+        "op_rename": "重命名",
+        "op_delete": "删除",
+        "op_split": "按大小拆分",
+        "op_doc_split": "文档拆分",
+        "doc_mode_h1": "按一级标题",
+        "doc_mode_h2": "按二级标题",
+        "doc_mode_h1_h2": "按一级+二级标题",
+        "status_success": "成功",
+        "status_failed": "失败",
+        "status_skipped": "跳过",
+        "status_dry_run": "预演",
+        "worker_processing": "处理中：{name}",
+        "worker_start_item": "[{idx}/{total}] 开始处理：{source}",
+        "worker_done_item": "已完成：{name}",
+        "worker_summary": "汇总: 总数={total} 成功={success} 预演={dry_run} 跳过={skipped} 失败={failed}",
+        "worker_report_output": "报告输出: {path}",
+        "worker_failure_details": "失败详情:",
+        "worker_remaining_failures": "- 其余 {count} 条请查看报告文件。",
+        "worker_check_log_or_report": "请查看执行日志或报告文件。",
+        "worker_finished_with_failures": "执行完成（存在失败）",
+        "worker_finished": "执行完成",
+        "worker_exception": "[异常] {error}",
+    },
+    "en": {
+        "window_title": "FileOps File Operations Tool",
+        "subtitle": "Supports copy/move/rename/delete/split-by-size/document split (heading split + OCR)",
+        "group_basic": "Basic Settings",
+        "label_operation": "Operation",
+        "label_language": "Language",
+        "label_workspace": "Workspace (safe scope)",
+        "button_browse": "Browse",
+        "group_sources": "Source List",
+        "button_add_file": "Add File",
+        "button_add_folder": "Add Folder",
+        "button_remove_selected": "Remove Selected",
+        "button_clear_list": "Clear List",
+        "group_options": "Operation Parameters",
+        "label_destination": "Output Directory / Target Path",
+        "label_overwrite": "Overwrite Policy",
+        "label_rename_pattern": "Rename Pattern",
+        "label_start_index": "Start Index",
+        "radio_trash": "Move to Recycle Bin",
+        "radio_hard_delete": "Delete Permanently",
+        "label_split_size": "Chunk Size (MB)",
+        "label_doc_mode": "Heading Split Rule",
+        "check_include_ocr": "Extract image text (OCR)",
+        "group_run": "Run",
+        "check_dry_run": "Dry run mode (no writes)",
+        "label_report_file": "Report File",
+        "button_save_as": "Save As",
+        "button_run": "Start",
+        "group_log": "Execution Log",
+        "status_ready": "Ready",
+        "status_running": "Running...",
+        "progress_not_started": "Progress: not started",
+        "progress_preparing": "Progress: 0/0 (0%)  Preparing...",
+        "progress_runtime": "Progress: {done}/{total} ({percent}%)  {detail}",
+        "dialog_result_title": "Execution Result",
+        "dialog_select_workspace": "Select Workspace",
+        "dialog_select_destination": "Select Output Directory",
+        "dialog_select_report_file": "Select Report File",
+        "dialog_select_file": "Select File",
+        "dialog_select_folder": "Select Folder",
+        "dialog_json_filter": "JSON Files (*.json);;All Files (*.*)",
+        "dialog_param_error_title": "Parameter Error",
+        "dialog_confirm_delete_title": "Confirm Permanent Delete",
+        "dialog_confirm_delete_text": "You selected permanent delete. This action cannot be undone. Continue?",
+        "error_workspace_diff_disk": "Workspace and source paths are on different drives. Please use the same drive.",
+        "error_workspace_infer": "Unable to infer workspace automatically. Please set it manually.",
+        "workspace_auto_adjusted": "Workspace auto-adjusted to: {workspace}",
+        "error_no_sources": "Add at least one source file or folder first.",
+        "error_missing_destination": "This operation requires an output directory or target path.",
+        "error_missing_pattern": "Please provide a rename pattern.",
+        "log_start_execution": "Start operation: {operation}",
+        "op_copy": "Copy",
+        "op_move": "Move",
+        "op_rename": "Rename",
+        "op_delete": "Delete",
+        "op_split": "Split by Size",
+        "op_doc_split": "Document Split",
+        "doc_mode_h1": "By H1",
+        "doc_mode_h2": "By H2",
+        "doc_mode_h1_h2": "By H1 + H2",
+        "status_success": "Success",
+        "status_failed": "Failed",
+        "status_skipped": "Skipped",
+        "status_dry_run": "Dry Run",
+        "worker_processing": "Processing: {name}",
+        "worker_start_item": "[{idx}/{total}] Start: {source}",
+        "worker_done_item": "Completed: {name}",
+        "worker_summary": "Summary: total={total} success={success} dry_run={dry_run} skipped={skipped} failed={failed}",
+        "worker_report_output": "Report written: {path}",
+        "worker_failure_details": "Failure details:",
+        "worker_remaining_failures": "- {count} more item(s). See the report file.",
+        "worker_check_log_or_report": "Check execution logs or report file for details.",
+        "worker_finished_with_failures": "Completed (with failures)",
+        "worker_finished": "Completed",
+        "worker_exception": "[Exception] {error}",
+    },
+}
+
+LANGUAGE_OPTIONS: list[tuple[str, str]] = [("zh", "中文"), ("en", "English")]
+OPERATION_VALUES: list[str] = ["copy", "move", "rename", "delete", "split", "doc_split"]
+DOC_MODE_VALUES: list[str] = ["h1", "h2", "h1_h2"]
+
+
+def _translate(language: str, key: str, **kwargs: object) -> str:
+    fallback_table = TRANSLATIONS["zh"]
+    table = TRANSLATIONS.get(language, fallback_table)
+    template = table.get(key, fallback_table.get(key, key))
+    return template.format(**kwargs)
+
+
 class OperationWorker(QThread):
     progress_changed = Signal(int, int, str)
     log_message = Signal(str)
     finished_status = Signal(str, bool, str)
 
-    def __init__(self, params: dict[str, object], operation_value_to_label: dict[str, str]) -> None:
+    def __init__(self, params: dict[str, object], operation_value_to_label: dict[str, str], language: str) -> None:
         super().__init__()
         self.params = params
         self.operation_value_to_label = operation_value_to_label
+        self.language = language if language in TRANSLATIONS else "zh"
+
+    def _tr(self, key: str, **kwargs: object) -> str:
+        return _translate(self.language, key, **kwargs)
 
     def run(self) -> None:
         operation = str(self.params["operation"])
@@ -55,10 +226,10 @@ class OperationWorker(QThread):
         )
 
         status_map = {
-            "success": "成功",
-            "failed": "失败",
-            "skipped": "跳过",
-            "dry_run": "预演",
+            "success": self._tr("status_success"),
+            "failed": self._tr("status_failed"),
+            "skipped": self._tr("status_skipped"),
+            "dry_run": self._tr("status_dry_run"),
         }
 
         try:
@@ -66,8 +237,8 @@ class OperationWorker(QThread):
             failure_details: list[str] = []
             for idx, source in enumerate(sources, start=1):
                 source_path = Path(source)
-                self.progress_changed.emit(idx - 1, total, f"处理中：{source_path.name}")
-                self.log_message.emit(f"[{idx}/{total}] 开始处理：{source_path}")
+                self.progress_changed.emit(idx - 1, total, self._tr("worker_processing", name=source_path.name))
+                self.log_message.emit(self._tr("worker_start_item", idx=idx, total=total, source=source_path))
 
                 rename_index = int(self.params.get("start_index", 1)) + idx - 1
                 results = self._run_single(operation, source_path, rename_index)
@@ -81,7 +252,7 @@ class OperationWorker(QThread):
                     if item.status.value == "failed":
                         failure_details.append(f"{Path(item.source).name}: {item.message}")
 
-                self.progress_changed.emit(idx, total, f"已完成：{source_path.name}")
+                self.progress_changed.emit(idx, total, self._tr("worker_done_item", name=source_path.name))
 
             report_path_text = str(self.params["report_path"]).strip()
             output_path = write_report(report, Path(report_path_text).resolve(strict=False)) if report_path_text else None
@@ -89,32 +260,37 @@ class OperationWorker(QThread):
             summary = report.summary()
             self.log_message.emit("")
             self.log_message.emit(
-                "汇总: "
-                f"总数={summary['total']} 成功={summary['success']} 预演={summary['dry_run']} "
-                f"跳过={summary['skipped']} 失败={summary['failed']}"
+                self._tr(
+                    "worker_summary",
+                    total=summary["total"],
+                    success=summary["success"],
+                    dry_run=summary["dry_run"],
+                    skipped=summary["skipped"],
+                    failed=summary["failed"],
+                )
             )
             if output_path is not None:
-                self.log_message.emit(f"报告输出: {output_path}")
+                self.log_message.emit(self._tr("worker_report_output", path=output_path))
 
             has_failure = summary["failed"] > 0
             if has_failure:
                 detail_lines = failure_details[:3]
                 if detail_lines:
-                    self.log_message.emit("失败详情:")
+                    self.log_message.emit(self._tr("worker_failure_details"))
                     for line in detail_lines:
                         self.log_message.emit(f"- {line}")
                     remain_count = len(failure_details) - len(detail_lines)
                     if remain_count > 0:
-                        self.log_message.emit(f"- 其余 {remain_count} 条请查看报告文件。")
-                detail_text = "\n".join(detail_lines) if detail_lines else "请查看执行日志或报告文件。"
+                        self.log_message.emit(self._tr("worker_remaining_failures", count=remain_count))
 
-                self.finished_status.emit("执行完成（存在失败）", True, detail_text)
+                detail_text = "\n".join(detail_lines) if detail_lines else self._tr("worker_check_log_or_report")
+                self.finished_status.emit(self._tr("worker_finished_with_failures"), True, detail_text)
             else:
-                self.finished_status.emit("执行完成", False, "")
+                self.finished_status.emit(self._tr("worker_finished"), False, "")
 
         except Exception as exc:  # noqa: BLE001
-            self.log_message.emit(f"[异常] {exc}")
-            self.finished_status.emit("执行失败", True, str(exc))
+            self.log_message.emit(self._tr("worker_exception", error=exc))
+            self.finished_status.emit(self._tr("status_failed"), True, str(exc))
 
     def _run_single(self, operation: str, source: Path, rename_index: int) -> list[OperationResult]:
         workspace = Path(self.params["workspace"])
@@ -156,30 +332,22 @@ class OperationWorker(QThread):
 class FileOpsWindow(QMainWindow):
     def __init__(self) -> None:
         super().__init__()
-        self.setWindowTitle("FileOps 文件操作工具")
         self.resize(1160, 820)
         cwd = Path.cwd()
         self.default_workspace = str(Path(cwd.anchor) if cwd.anchor else cwd)
 
-        self.operation_label_to_value = {
-            "复制": "copy",
-            "移动": "move",
-            "重命名": "rename",
-            "删除": "delete",
-            "按大小拆分": "split",
-            "文档拆分": "doc_split",
-        }
-        self.operation_value_to_label = {value: key for key, value in self.operation_label_to_value.items()}
-        self.doc_mode_label_to_value = {
-            "按一级标题": "h1",
-            "按二级标题": "h2",
-            "按一级+二级标题": "h1_h2",
-        }
+        self.language = "zh"
+        self.operation_values = OPERATION_VALUES[:]
+        self.doc_mode_values = DOC_MODE_VALUES[:]
 
         self.worker: OperationWorker | None = None
         self._build_ui()
         self._apply_styles()
+        self._apply_language(initial=True)
         self._sync_operation_fields()
+
+    def _tr(self, key: str, **kwargs: object) -> str:
+        return _translate(self.language, key, **kwargs)
 
     def _build_ui(self) -> None:
         central = QWidget(self)
@@ -193,74 +361,87 @@ class FileOpsWindow(QMainWindow):
         header_layout.setContentsMargins(0, 0, 0, 0)
         title = QLabel("FileOps")
         title.setObjectName("titleLabel")
-        subtitle = QLabel("支持复制/移动/重命名/删除/按大小拆分/文档拆分（标题分段 + 图片文字提取）")
-        subtitle.setObjectName("subTitleLabel")
+        self.subtitle_label = QLabel("")
+        self.subtitle_label.setObjectName("subTitleLabel")
         header_layout.addWidget(title)
-        header_layout.addWidget(subtitle)
+        header_layout.addWidget(self.subtitle_label)
         root_layout.addWidget(header)
 
-        config_group = QGroupBox("基础配置")
-        config_layout = QHBoxLayout(config_group)
-        config_layout.addWidget(QLabel("操作类型"))
+        self.config_group = QGroupBox("")
+        config_layout = QHBoxLayout(self.config_group)
+        self.operation_label = QLabel("")
+        config_layout.addWidget(self.operation_label)
         self.operation_combo = QComboBox()
-        self.operation_combo.addItems(list(self.operation_label_to_value.keys()))
-        self.operation_combo.currentTextChanged.connect(self._sync_operation_fields)
+        self.operation_combo.currentIndexChanged.connect(lambda _idx: self._sync_operation_fields())
         config_layout.addWidget(self.operation_combo)
 
-        config_layout.addWidget(QLabel("工作区（安全范围）"))
+        self.language_label = QLabel("")
+        config_layout.addWidget(self.language_label)
+        self.language_combo = QComboBox()
+        for code, label in LANGUAGE_OPTIONS:
+            self.language_combo.addItem(label, code)
+        self.language_combo.currentIndexChanged.connect(lambda _idx: self._on_language_changed())
+        config_layout.addWidget(self.language_combo)
+
+        self.workspace_label = QLabel("")
+        config_layout.addWidget(self.workspace_label)
         self.workspace_edit = QLineEdit(self.default_workspace)
         config_layout.addWidget(self.workspace_edit, 1)
-        browse_workspace_button = QPushButton("浏览")
-        browse_workspace_button.clicked.connect(self._select_workspace)
-        config_layout.addWidget(browse_workspace_button)
-        root_layout.addWidget(config_group)
+        self.browse_workspace_button = QPushButton("")
+        self.browse_workspace_button.clicked.connect(self._select_workspace)
+        config_layout.addWidget(self.browse_workspace_button)
+        root_layout.addWidget(self.config_group)
 
-        source_group = QGroupBox("源文件列表")
-        source_layout = QHBoxLayout(source_group)
+        self.source_group = QGroupBox("")
+        source_layout = QHBoxLayout(self.source_group)
         self.source_list = QListWidget()
         source_layout.addWidget(self.source_list, 1)
 
         source_button_layout = QVBoxLayout()
-        add_file_button = QPushButton("添加文件")
-        add_file_button.clicked.connect(self._add_files)
-        add_folder_button = QPushButton("添加文件夹")
-        add_folder_button.clicked.connect(self._add_folder)
-        remove_button = QPushButton("移除选中")
-        remove_button.clicked.connect(self._remove_selected_sources)
-        clear_button = QPushButton("清空列表")
-        clear_button.clicked.connect(self._clear_sources)
+        self.add_file_button = QPushButton("")
+        self.add_file_button.clicked.connect(self._add_files)
+        self.add_folder_button = QPushButton("")
+        self.add_folder_button.clicked.connect(self._add_folder)
+        self.remove_button = QPushButton("")
+        self.remove_button.clicked.connect(self._remove_selected_sources)
+        self.clear_button = QPushButton("")
+        self.clear_button.clicked.connect(self._clear_sources)
 
-        source_button_layout.addWidget(add_file_button)
-        source_button_layout.addWidget(add_folder_button)
-        source_button_layout.addWidget(remove_button)
-        source_button_layout.addWidget(clear_button)
+        source_button_layout.addWidget(self.add_file_button)
+        source_button_layout.addWidget(self.add_folder_button)
+        source_button_layout.addWidget(self.remove_button)
+        source_button_layout.addWidget(self.clear_button)
         source_button_layout.addStretch(1)
         source_layout.addLayout(source_button_layout)
-        root_layout.addWidget(source_group)
+        root_layout.addWidget(self.source_group)
 
-        options_group = QGroupBox("操作参数")
-        options_layout = QVBoxLayout(options_group)
+        self.options_group = QGroupBox("")
+        options_layout = QVBoxLayout(self.options_group)
 
         row1 = QHBoxLayout()
-        row1.addWidget(QLabel("输出目录/目标路径"))
+        self.destination_label = QLabel("")
+        row1.addWidget(self.destination_label)
         self.destination_edit = QLineEdit()
         row1.addWidget(self.destination_edit, 1)
-        browse_dest_button = QPushButton("浏览")
-        browse_dest_button.clicked.connect(self._select_destination)
-        row1.addWidget(browse_dest_button)
+        self.browse_dest_button = QPushButton("")
+        self.browse_dest_button.clicked.connect(self._select_destination)
+        row1.addWidget(self.browse_dest_button)
         options_layout.addLayout(row1)
 
         row2 = QHBoxLayout()
-        row2.addWidget(QLabel("覆盖策略"))
+        self.overwrite_label = QLabel("")
+        row2.addWidget(self.overwrite_label)
         self.overwrite_combo = QComboBox()
         self.overwrite_combo.addItems(["never", "always", "rename"])
         row2.addWidget(self.overwrite_combo)
 
-        row2.addWidget(QLabel("重命名模板"))
+        self.rename_pattern_label = QLabel("")
+        row2.addWidget(self.rename_pattern_label)
         self.rename_pattern_edit = QLineEdit("{stem}_{index}{ext}")
         row2.addWidget(self.rename_pattern_edit, 1)
 
-        row2.addWidget(QLabel("起始序号"))
+        self.start_index_label = QLabel("")
+        row2.addWidget(self.start_index_label)
         self.start_index_spin = QSpinBox()
         self.start_index_spin.setMinimum(1)
         self.start_index_spin.setMaximum(999999)
@@ -269,14 +450,15 @@ class FileOpsWindow(QMainWindow):
         options_layout.addLayout(row2)
 
         row3 = QHBoxLayout()
-        self.trash_radio = QRadioButton("删除到回收站")
-        self.hard_delete_radio = QRadioButton("永久删除")
+        self.trash_radio = QRadioButton("")
+        self.hard_delete_radio = QRadioButton("")
         self.trash_radio.setChecked(True)
         row3.addWidget(self.trash_radio)
         row3.addWidget(self.hard_delete_radio)
 
         row3.addSpacing(20)
-        row3.addWidget(QLabel("分片大小(MB)"))
+        self.split_size_label = QLabel("")
+        row3.addWidget(self.split_size_label)
         self.split_size_spin = QDoubleSpinBox()
         self.split_size_spin.setMinimum(0.01)
         self.split_size_spin.setMaximum(20480.0)
@@ -285,33 +467,34 @@ class FileOpsWindow(QMainWindow):
         row3.addWidget(self.split_size_spin)
 
         row3.addSpacing(20)
-        row3.addWidget(QLabel("标题拆分规则"))
+        self.doc_mode_label = QLabel("")
+        row3.addWidget(self.doc_mode_label)
         self.doc_mode_combo = QComboBox()
-        self.doc_mode_combo.addItems(list(self.doc_mode_label_to_value.keys()))
         row3.addWidget(self.doc_mode_combo)
 
-        self.include_ocr_check = QCheckBox("提取图片文字（OCR）")
+        self.include_ocr_check = QCheckBox("")
         self.include_ocr_check.setChecked(True)
         row3.addWidget(self.include_ocr_check)
         row3.addStretch(1)
         options_layout.addLayout(row3)
 
-        root_layout.addWidget(options_group)
+        root_layout.addWidget(self.options_group)
 
-        run_group = QGroupBox("执行")
-        run_layout = QVBoxLayout(run_group)
+        self.run_group = QGroupBox("")
+        run_layout = QVBoxLayout(self.run_group)
 
         run_row = QHBoxLayout()
-        self.dry_run_check = QCheckBox("预演模式（不写入）")
+        self.dry_run_check = QCheckBox("")
         run_row.addWidget(self.dry_run_check)
-        run_row.addWidget(QLabel("报告文件"))
+        self.report_label = QLabel("")
+        run_row.addWidget(self.report_label)
         self.report_edit = QLineEdit()
         run_row.addWidget(self.report_edit, 1)
-        save_report_button = QPushButton("另存为")
-        save_report_button.clicked.connect(self._select_report_file)
-        run_row.addWidget(save_report_button)
+        self.save_report_button = QPushButton("")
+        self.save_report_button.clicked.connect(self._select_report_file)
+        run_row.addWidget(self.save_report_button)
 
-        self.run_button = QPushButton("开始执行")
+        self.run_button = QPushButton("")
         self.run_button.clicked.connect(self._execute_operation)
         run_row.addWidget(self.run_button)
         run_layout.addLayout(run_row)
@@ -321,18 +504,18 @@ class FileOpsWindow(QMainWindow):
         self.progress_bar.setValue(0)
         run_layout.addWidget(self.progress_bar)
 
-        self.progress_label = QLabel("进度：未开始")
+        self.progress_label = QLabel("")
         run_layout.addWidget(self.progress_label)
-        root_layout.addWidget(run_group)
+        root_layout.addWidget(self.run_group)
 
-        log_group = QGroupBox("执行日志")
-        log_layout = QVBoxLayout(log_group)
+        self.log_group = QGroupBox("")
+        log_layout = QVBoxLayout(self.log_group)
         self.log_text = QPlainTextEdit()
         self.log_text.setReadOnly(True)
         log_layout.addWidget(self.log_text)
-        root_layout.addWidget(log_group, 1)
+        root_layout.addWidget(self.log_group, 1)
 
-        self.status_label = QLabel("就绪")
+        self.status_label = QLabel("")
         root_layout.addWidget(self.status_label)
 
     def _apply_styles(self) -> None:
@@ -400,9 +583,87 @@ class FileOpsWindow(QMainWindow):
             """
         )
 
+    def _on_language_changed(self) -> None:
+        code = str(self.language_combo.currentData() or "zh")
+        if code == self.language:
+            return
+        self.language = code
+        self._apply_language(initial=False)
+
+    def _apply_language(self, initial: bool) -> None:
+        self.setWindowTitle(self._tr("window_title"))
+        self.subtitle_label.setText(self._tr("subtitle"))
+        self.config_group.setTitle(self._tr("group_basic"))
+        self.operation_label.setText(self._tr("label_operation"))
+        self.language_label.setText(self._tr("label_language"))
+        self.workspace_label.setText(self._tr("label_workspace"))
+        self.browse_workspace_button.setText(self._tr("button_browse"))
+        self.source_group.setTitle(self._tr("group_sources"))
+        self.add_file_button.setText(self._tr("button_add_file"))
+        self.add_folder_button.setText(self._tr("button_add_folder"))
+        self.remove_button.setText(self._tr("button_remove_selected"))
+        self.clear_button.setText(self._tr("button_clear_list"))
+        self.options_group.setTitle(self._tr("group_options"))
+        self.destination_label.setText(self._tr("label_destination"))
+        self.browse_dest_button.setText(self._tr("button_browse"))
+        self.overwrite_label.setText(self._tr("label_overwrite"))
+        self.rename_pattern_label.setText(self._tr("label_rename_pattern"))
+        self.start_index_label.setText(self._tr("label_start_index"))
+        self.trash_radio.setText(self._tr("radio_trash"))
+        self.hard_delete_radio.setText(self._tr("radio_hard_delete"))
+        self.split_size_label.setText(self._tr("label_split_size"))
+        self.doc_mode_label.setText(self._tr("label_doc_mode"))
+        self.include_ocr_check.setText(self._tr("check_include_ocr"))
+        self.run_group.setTitle(self._tr("group_run"))
+        self.dry_run_check.setText(self._tr("check_dry_run"))
+        self.report_label.setText(self._tr("label_report_file"))
+        self.save_report_button.setText(self._tr("button_save_as"))
+        self.run_button.setText(self._tr("button_run"))
+        self.log_group.setTitle(self._tr("group_log"))
+
+        self._rebuild_operation_combo()
+        self._rebuild_doc_mode_combo()
+        self._sync_operation_fields()
+
+        if initial:
+            self.status_label.setText(self._tr("status_ready"))
+            self.progress_label.setText(self._tr("progress_not_started"))
+            return
+
+        if self.worker is None:
+            ready_values = {_translate(code, "status_ready") for code, _label in LANGUAGE_OPTIONS}
+            progress_values = {_translate(code, "progress_not_started") for code, _label in LANGUAGE_OPTIONS}
+            if self.status_label.text() in ready_values:
+                self.status_label.setText(self._tr("status_ready"))
+            if self.progress_label.text() in progress_values:
+                self.progress_label.setText(self._tr("progress_not_started"))
+
+    def _rebuild_operation_combo(self) -> None:
+        current_value = self._current_operation() if self.operation_combo.count() > 0 else "copy"
+        self.operation_combo.blockSignals(True)
+        self.operation_combo.clear()
+        for operation in self.operation_values:
+            self.operation_combo.addItem(self._tr(f"op_{operation}"), operation)
+        target_index = self.operation_combo.findData(current_value)
+        self.operation_combo.setCurrentIndex(target_index if target_index >= 0 else 0)
+        self.operation_combo.blockSignals(False)
+
+    def _rebuild_doc_mode_combo(self) -> None:
+        current_value = str(self.doc_mode_combo.currentData() or "h1") if self.doc_mode_combo.count() > 0 else "h1"
+        self.doc_mode_combo.blockSignals(True)
+        self.doc_mode_combo.clear()
+        for mode in self.doc_mode_values:
+            self.doc_mode_combo.addItem(self._tr(f"doc_mode_{mode}"), mode)
+        target_index = self.doc_mode_combo.findData(current_value)
+        self.doc_mode_combo.setCurrentIndex(target_index if target_index >= 0 else 0)
+        self.doc_mode_combo.blockSignals(False)
+
+    def _operation_value_to_label(self) -> dict[str, str]:
+        return {operation: self._tr(f"op_{operation}") for operation in self.operation_values}
+
     def _current_operation(self) -> str:
-        label = self.operation_combo.currentText().strip()
-        return self.operation_label_to_value.get(label, "copy")
+        value = self.operation_combo.currentData()
+        return str(value) if value else "copy"
 
     def _set_widget_enabled(self, widget: QWidget, enabled: bool) -> None:
         widget.setEnabled(enabled)
@@ -431,15 +692,15 @@ class FileOpsWindow(QMainWindow):
         try:
             common_text = os.path.commonpath(candidates)
         except ValueError as exc:
-            raise ValueError("工作区与源路径不在同一磁盘，请调整为同一盘后重试。") from exc
+            raise ValueError(self._tr("error_workspace_diff_disk")) from exc
 
         common = Path(common_text).resolve(strict=False)
         if common.is_file():
             common = common.parent
         if not common.parts:
-            raise ValueError("无法自动推导工作区，请手动设置。")
+            raise ValueError(self._tr("error_workspace_infer"))
 
-        return common, f"自动调整工作区为：{common}"
+        return common, self._tr("workspace_auto_adjusted", workspace=common)
 
     def _sync_operation_fields(self) -> None:
         operation = self._current_operation()
@@ -464,6 +725,7 @@ class FileOpsWindow(QMainWindow):
     def _set_running(self, running: bool) -> None:
         self.run_button.setEnabled(not running)
         self.operation_combo.setEnabled(not running)
+        self.language_combo.setEnabled(not running)
 
     def _append_log(self, text: str) -> None:
         self.log_text.appendPlainText(text)
@@ -471,7 +733,7 @@ class FileOpsWindow(QMainWindow):
     def _on_worker_progress(self, done: int, total: int, detail: str) -> None:
         percent = 100 if total == 0 else int((done / total) * 100)
         self.progress_bar.setValue(percent)
-        self.progress_label.setText(f"进度：{done}/{total}（{percent}%）  {detail}")
+        self.progress_label.setText(self._tr("progress_runtime", done=done, total=total, percent=percent, detail=detail))
 
     def _on_worker_log(self, text: str) -> None:
         self._append_log(text)
@@ -481,41 +743,57 @@ class FileOpsWindow(QMainWindow):
         self.status_label.setText(status)
         if is_error:
             message = status if not detail else f"{status}\n\n{detail}"
-            QMessageBox.critical(self, "执行结果", message)
+            QMessageBox.critical(self, self._tr("dialog_result_title"), message)
         else:
-            QMessageBox.information(self, "执行结果", status)
+            QMessageBox.information(self, self._tr("dialog_result_title"), status)
 
         if self.worker is not None:
             self.worker.deleteLater()
             self.worker = None
 
     def _select_workspace(self) -> None:
-        selected = QFileDialog.getExistingDirectory(self, "选择工作区", self.workspace_edit.text().strip() or str(Path.cwd()))
+        selected = QFileDialog.getExistingDirectory(
+            self,
+            self._tr("dialog_select_workspace"),
+            self.workspace_edit.text().strip() or str(Path.cwd()),
+        )
         if selected:
             self.workspace_edit.setText(selected)
 
     def _select_destination(self) -> None:
-        selected = QFileDialog.getExistingDirectory(self, "选择输出目录", self.workspace_edit.text().strip() or str(Path.cwd()))
+        selected = QFileDialog.getExistingDirectory(
+            self,
+            self._tr("dialog_select_destination"),
+            self.workspace_edit.text().strip() or str(Path.cwd()),
+        )
         if selected:
             self.destination_edit.setText(selected)
 
     def _select_report_file(self) -> None:
         selected, _ = QFileDialog.getSaveFileName(
             self,
-            "选择报告文件",
+            self._tr("dialog_select_report_file"),
             self.workspace_edit.text().strip() or str(Path.cwd()),
-            "JSON 文件 (*.json);;全部文件 (*.*)",
+            self._tr("dialog_json_filter"),
         )
         if selected:
             self.report_edit.setText(selected)
 
     def _add_files(self) -> None:
-        files, _ = QFileDialog.getOpenFileNames(self, "选择文件", self.workspace_edit.text().strip() or str(Path.cwd()))
+        files, _ = QFileDialog.getOpenFileNames(
+            self,
+            self._tr("dialog_select_file"),
+            self.workspace_edit.text().strip() or str(Path.cwd()),
+        )
         for file_path in files:
             self._append_source(file_path)
 
     def _add_folder(self) -> None:
-        selected = QFileDialog.getExistingDirectory(self, "选择文件夹", self.workspace_edit.text().strip() or str(Path.cwd()))
+        selected = QFileDialog.getExistingDirectory(
+            self,
+            self._tr("dialog_select_folder"),
+            self.workspace_edit.text().strip() or str(Path.cwd()),
+        )
         if selected:
             self._append_source(selected)
 
@@ -540,7 +818,7 @@ class FileOpsWindow(QMainWindow):
         for idx in range(self.source_list.count()):
             sources.append(Path(self.source_list.item(idx).text()).resolve(strict=False))
         if not sources:
-            raise ValueError("请先添加至少一个源文件或目录。")
+            raise ValueError(self._tr("error_no_sources"))
 
         params: dict[str, object] = {
             "operation": operation,
@@ -554,13 +832,13 @@ class FileOpsWindow(QMainWindow):
         if operation in {"copy", "move", "split", "doc_split"}:
             dest_text = self.destination_edit.text().strip()
             if not dest_text:
-                raise ValueError("该操作需要指定输出目录/目标路径。")
+                raise ValueError(self._tr("error_missing_destination"))
             params["destination"] = Path(dest_text).resolve(strict=False)
 
         if operation == "rename":
             pattern = self.rename_pattern_edit.text().strip()
             if not pattern:
-                raise ValueError("请填写重命名模板。")
+                raise ValueError(self._tr("error_missing_pattern"))
             params["pattern"] = pattern
             params["start_index"] = int(self.start_index_spin.value())
 
@@ -571,7 +849,7 @@ class FileOpsWindow(QMainWindow):
             params["split_size_mb"] = float(self.split_size_spin.value())
 
         if operation == "doc_split":
-            params["heading_mode"] = self.doc_mode_label_to_value[self.doc_mode_combo.currentText()]
+            params["heading_mode"] = str(self.doc_mode_combo.currentData() or "h1")
             params["include_image_text"] = self.include_ocr_check.isChecked()
 
         candidate_paths = list(sources)
@@ -591,14 +869,14 @@ class FileOpsWindow(QMainWindow):
         try:
             params = self._collect_parameters()
         except ValueError as exc:
-            QMessageBox.critical(self, "参数错误", str(exc))
+            QMessageBox.critical(self, self._tr("dialog_param_error_title"), str(exc))
             return
 
         if self._current_operation() == "delete" and not bool(params["dry_run"]) and not bool(params.get("use_trash", True)):
             confirmed = QMessageBox.question(
                 self,
-                "确认永久删除",
-                "你选择了“永久删除”，该操作不可恢复，是否继续？",
+                self._tr("dialog_confirm_delete_title"),
+                self._tr("dialog_confirm_delete_text"),
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.No,
             )
@@ -607,17 +885,21 @@ class FileOpsWindow(QMainWindow):
 
         self._set_running(True)
         self.progress_bar.setValue(0)
-        self.progress_label.setText("进度：0/0（0%）  准备中...")
-        self.status_label.setText("执行中...")
+        self.progress_label.setText(self._tr("progress_preparing"))
+        self.status_label.setText(self._tr("status_running"))
         self._append_log("----------------------------------------")
-        self._append_log(f"开始执行：{self.operation_combo.currentText()}")
+        self._append_log(self._tr("log_start_execution", operation=self.operation_combo.currentText()))
 
         self.workspace_edit.setText(str(params["workspace"]))
         workspace_note = params.get("workspace_note")
         if workspace_note:
             self._append_log(str(workspace_note))
 
-        self.worker = OperationWorker(params, self.operation_value_to_label)
+        self.worker = OperationWorker(
+            params=params,
+            operation_value_to_label=self._operation_value_to_label(),
+            language=self.language,
+        )
         self.worker.progress_changed.connect(self._on_worker_progress)
         self.worker.log_message.connect(self._on_worker_log)
         self.worker.finished_status.connect(self._on_worker_finished)

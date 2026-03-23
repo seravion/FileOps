@@ -20,7 +20,7 @@ except ImportError:  # pragma: no cover
 OVERWRITE_POLICIES = {"never", "always", "rename"}
 
 
-@dataclass(slots=True)
+@dataclass
 class CommonOptions:
     workspace: Path
     dry_run: bool = False
