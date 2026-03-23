@@ -1,4 +1,4 @@
-﻿# FileOps
+# FileOps
 Lightweight and safe file operation toolkit with `copy`, `move`, `rename`, and `delete`.
 
 ## Features
@@ -17,6 +17,7 @@ Lightweight and safe file operation toolkit with `copy`, `move`, `rename`, and `
 - `installer/FileOps.iss`: Inno Setup configuration
 - `docs/PRD.md`: product requirements
 - `docs/ARCHITECTURE.md`: technical architecture
+- `docs/INSTALLATION.md`: build and release steps
 
 ## Local Development
 Prerequisites:
@@ -82,7 +83,7 @@ Output binary:
 
 ## Build Installer
 Prerequisite:
-- Inno Setup (`iscc`) available in PATH
+- Inno Setup (`ISCC.exe`)
 
 Build:
 ```powershell
