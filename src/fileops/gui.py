@@ -6,7 +6,7 @@ from pathlib import Path
 from tkinter import filedialog, messagebox, ttk
 
 from .document_split import split_documents_by_structure
-from .models import RunReport
+from .models import OperationResult, RunReport
 from .operations import CommonOptions, copy_items, delete_items, move_items, rename_items, split_items
 from .reporting import write_report
 
@@ -15,7 +15,7 @@ class FileOpsGUI:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self.root.title("FileOps 文件操作工具")
-        self.root.geometry("1120x760")
+        self.root.geometry("1120x780")
         self.root.minsize(980, 700)
 
         self.operation_label_to_value = {
@@ -46,6 +46,9 @@ class FileOpsGUI:
         self.report_path_var = tk.StringVar(value="")
         self.dry_run_var = tk.BooleanVar(value=False)
         self.use_trash_var = tk.BooleanVar(value=True)
+        self.status_var = tk.StringVar(value="就绪")
+        self.progress_text_var = tk.StringVar(value="进度：未开始")
+        self.progress_var = tk.DoubleVar(value=0.0)
 
         self._build_styles()
         self._build_ui()
@@ -66,8 +69,8 @@ class FileOpsGUI:
         style.configure("HeaderSub.TLabel", background="#f3f6fb", foreground="#475569", font=("Microsoft YaHei UI", 10))
         style.configure("Card.TLabelframe", background="#ffffff", bordercolor="#dbe2ef", relief="solid", borderwidth=1)
         style.configure("Card.TLabelframe.Label", background="#ffffff", foreground="#1e293b", font=("Microsoft YaHei UI", 10, "bold"))
-        style.configure("Card.TFrame", background="#ffffff")
         style.configure("Primary.TButton", font=("Microsoft YaHei UI", 10, "bold"), padding=(14, 7))
+        style.configure("Progress.Horizontal.TProgressbar", troughcolor="#e2e8f0", background="#3b82f6", thickness=14)
 
     def _build_ui(self) -> None:
         page = ttk.Frame(self.root, style="Page.TFrame", padding=12)
@@ -192,6 +195,17 @@ class FileOpsGUI:
         self.run_button = ttk.Button(run_frame, text="开始执行", style="Primary.TButton", command=self._execute_operation)
         self.run_button.grid(row=0, column=4, padx=(16, 0), sticky=tk.E)
 
+        self.progress = ttk.Progressbar(
+            run_frame,
+            style="Progress.Horizontal.TProgressbar",
+            mode="determinate",
+            maximum=100,
+            variable=self.progress_var,
+        )
+        self.progress.grid(row=1, column=0, columnspan=5, sticky=tk.EW, pady=(10, 4))
+
+        ttk.Label(run_frame, textvariable=self.progress_text_var, foreground="#334155").grid(row=2, column=0, columnspan=5, sticky=tk.W)
+
         run_frame.grid_columnconfigure(2, weight=1)
 
         log_frame = ttk.LabelFrame(page, text="执行日志", style="Card.TLabelframe", padding=10)
@@ -211,7 +225,6 @@ class FileOpsGUI:
         )
         self.log_text.pack(fill=tk.BOTH, expand=True)
 
-        self.status_var = tk.StringVar(value="就绪")
         status_bar = ttk.Frame(page, style="Page.TFrame")
         status_bar.pack(fill=tk.X, pady=(8, 0))
         ttk.Label(status_bar, textvariable=self.status_var, foreground="#334155").pack(anchor=tk.W)
@@ -249,6 +262,29 @@ class FileOpsGUI:
             widget.configure(state="disabled")
             return
         widget.configure(state="readonly" if readonly else "normal")
+
+    def _set_running(self, running: bool) -> None:
+        if running:
+            self.run_button.configure(state="disabled")
+            self.operation_box.configure(state="disabled")
+        else:
+            self.run_button.configure(state="normal")
+            self.operation_box.configure(state="readonly")
+
+    def _append_log(self, text: str) -> None:
+        self.log_text.insert(tk.END, text + "\n")
+        self.log_text.see(tk.END)
+
+    def _thread_log(self, text: str) -> None:
+        self.root.after(0, lambda: self._append_log(text))
+
+    def _thread_progress(self, done: int, total: int, detail: str) -> None:
+        def apply() -> None:
+            percent = 100.0 if total == 0 else (done / total) * 100.0
+            self.progress_var.set(percent)
+            self.progress_text_var.set(f"进度：{done}/{total}（{percent:.0f}%）  {detail}")
+
+        self.root.after(0, apply)
 
     def _select_workspace(self) -> None:
         selected = filedialog.askdirectory(initialdir=self.workspace_var.get() or str(Path.cwd()))
@@ -302,14 +338,17 @@ class FileOpsGUI:
             messagebox.showerror("参数错误", str(exc))
             return
 
-        if not params["dry_run"]:
-            op_label = self.operation_label_var.get()
-            confirmed = messagebox.askyesno("确认执行", f"即将执行“{op_label}”，共 {len(params['sources'])} 个源项，是否继续？")
+        if self._current_operation() == "delete" and not params["dry_run"] and not bool(params.get("use_trash", True)):
+            confirmed = messagebox.askyesno("确认永久删除", "你选择了“永久删除”，该操作不可恢复，是否继续？")
             if not confirmed:
                 return
 
-        self.run_button.configure(state="disabled")
+        self.progress_var.set(0.0)
+        self.progress_text_var.set("进度：0/0（0%）  准备中...")
         self.status_var.set("执行中...")
+        self._set_running(True)
+        self._append_log("----------------------------------------")
+        self._append_log(f"开始执行：{self.operation_label_var.get()}")
 
         worker = threading.Thread(target=self._run_operation, args=(params,), daemon=True)
         worker.start()
@@ -366,97 +405,98 @@ class FileOpsGUI:
 
         return payload
 
-    def _run_operation(self, params: dict[str, object]) -> None:
-        operation = str(params["operation"])
+    def _run_single(
+        self,
+        operation: str,
+        source: Path,
+        params: dict[str, object],
+        rename_index: int,
+    ) -> list[OperationResult]:
         workspace = Path(params["workspace"])
-        sources = list(params["sources"])
         dry_run = bool(params["dry_run"])
 
-        report = RunReport(command=operation, dry_run_mode=dry_run, workspace=str(workspace))
+        if operation in {"copy", "move", "rename", "split"}:
+            common = CommonOptions(
+                workspace=workspace,
+                dry_run=dry_run,
+                overwrite=str(params["overwrite"]),
+            )
+
+            if operation == "copy":
+                return copy_items([source], Path(params["destination"]), common)
+            if operation == "move":
+                return move_items([source], Path(params["destination"]), common)
+            if operation == "rename":
+                return rename_items([source], str(params["pattern"]), rename_index, common)
+            return split_items([source], Path(params["destination"]), float(params["split_size_mb"]), common)
+
+        if operation == "doc_split":
+            return split_documents_by_structure(
+                sources=[source],
+                destination=Path(params["destination"]),
+                workspace=workspace,
+                dry_run=dry_run,
+                heading_mode=str(params["heading_mode"]),
+                include_image_text=bool(params["include_image_text"]),
+            )
+
+        return delete_items(
+            sources=[source],
+            workspace=workspace,
+            dry_run=dry_run,
+            use_trash=bool(params["use_trash"]),
+        )
+
+    def _run_operation(self, params: dict[str, object]) -> None:
+        operation = str(params["operation"])
+        sources = list(params["sources"])
+        report = RunReport(command=operation, dry_run_mode=bool(params["dry_run"]), workspace=str(params["workspace"]))
+        total = len(sources)
+
+        status_map = {
+            "success": "成功",
+            "failed": "失败",
+            "skipped": "跳过",
+            "dry_run": "预演",
+        }
 
         try:
-            if operation in {"copy", "move", "rename", "split"}:
-                common = CommonOptions(
-                    workspace=workspace,
-                    dry_run=dry_run,
-                    overwrite=str(params["overwrite"]),
-                )
+            for idx, source in enumerate(sources, start=1):
+                self._thread_progress(idx - 1, total, f"处理中：{source.name}")
+                self._thread_log(f"[{idx}/{total}] 开始处理：{source}")
 
-                if operation == "copy":
-                    results = copy_items(sources, Path(params["destination"]), common)
-                elif operation == "move":
-                    results = move_items(sources, Path(params["destination"]), common)
-                elif operation == "rename":
-                    results = rename_items(
-                        sources=sources,
-                        pattern=str(params["pattern"]),
-                        start_index=int(params["start_index"]),
-                        options=common,
-                    )
-                else:
-                    results = split_items(
-                        sources=sources,
-                        destination=Path(params["destination"]),
-                        chunk_size_mb=float(params["split_size_mb"]),
-                        options=common,
-                    )
-            elif operation == "doc_split":
-                results = split_documents_by_structure(
-                    sources=sources,
-                    destination=Path(params["destination"]),
-                    workspace=workspace,
-                    dry_run=dry_run,
-                    heading_mode=str(params["heading_mode"]),
-                    include_image_text=bool(params["include_image_text"]),
-                )
-            else:
-                results = delete_items(
-                    sources=sources,
-                    workspace=workspace,
-                    dry_run=dry_run,
-                    use_trash=bool(params["use_trash"]),
-                )
+                results = self._run_single(operation, source, params, rename_index=int(params.get("start_index", 1)) + idx - 1)
+                for item in results:
+                    report.add(item)
+                    op_label = self.operation_value_to_label.get(item.operation, item.operation)
+                    status_text = status_map.get(item.status.value, item.status.value)
+                    self._thread_log(f"[{status_text}] {op_label} | {item.source} -> {item.destination} | {item.message}")
 
-            for item in results:
-                report.add(item)
+                self._thread_progress(idx, total, f"已完成：{source.name}")
 
             report_path_text = str(params["report_path"]).strip()
             output_path = write_report(report, Path(report_path_text).resolve(strict=False)) if report_path_text else None
 
-            status_map = {
-                "success": "成功",
-                "failed": "失败",
-                "skipped": "跳过",
-                "dry_run": "预演",
-            }
-            log_lines: list[str] = []
-            for item in report.results:
-                op_label = self.operation_value_to_label.get(item.operation, item.operation)
-                status_text = status_map.get(item.status.value, item.status.value)
-                log_lines.append(f"[{status_text}] {op_label} | {item.source} -> {item.destination} | {item.message}")
-
             summary = report.summary()
-            log_lines.append("")
-            log_lines.append(
+            self._thread_log("")
+            self._thread_log(
                 "汇总: "
                 f"总数={summary['total']} 成功={summary['success']} 预演={summary['dry_run']} "
                 f"跳过={summary['skipped']} 失败={summary['failed']}"
             )
             if output_path is not None:
-                log_lines.append(f"报告输出: {output_path}")
+                self._thread_log(f"报告输出: {output_path}")
 
             has_failure = summary["failed"] > 0
-            status_text = "执行完成（存在失败）" if has_failure else "执行完成"
-            self.root.after(0, lambda: self._finish_run("\n".join(log_lines), status_text, has_failure))
+            final_status = "执行完成（存在失败）" if has_failure else "执行完成"
+            self.root.after(0, lambda: self._finish_run(final_status, has_failure))
 
         except Exception as exc:  # noqa: BLE001
-            self.root.after(0, lambda: self._finish_run(f"错误: {exc}", "执行失败", True))
+            self.root.after(0, lambda: self._finish_run(f"执行失败：{exc}", True))
 
-    def _finish_run(self, text: str, status: str, is_error: bool) -> None:
-        self.log_text.insert(tk.END, text + "\n\n")
-        self.log_text.see(tk.END)
+    def _finish_run(self, status: str, is_error: bool) -> None:
         self.status_var.set(status)
-        self.run_button.configure(state="normal")
+        self._set_running(False)
 
         if is_error:
             messagebox.showerror("执行结果", status)
