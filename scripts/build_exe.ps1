@@ -72,12 +72,24 @@ if ($Clean) {
     if (Test-Path "dist") { Remove-Item -Recurse -Force "dist" }
 }
 
+if (Test-Path "build\\fileops_new") {
+    Remove-Item -Recurse -Force "build\\fileops_new"
+}
+
+if (Test-Path "build\\fileops_new.spec") {
+    Remove-Item -Force "build\\fileops_new.spec"
+}
+
 if (Test-Path "dist\\fileops_new.exe") {
     Remove-Item -Force "dist\\fileops_new.exe"
 }
 
 if (Test-Path "fileops_new.spec") {
     Remove-Item -Force "fileops_new.spec"
+}
+
+if (Test-Path "fileops.spec") {
+    Remove-Item -Force "fileops.spec"
 }
 
 if (Test-Path "dist\\fileops.exe") {
@@ -115,6 +127,6 @@ else {
 }
 
 Invoke-Checked -Command $venvPython -Arguments @("-m", "pip", "install", "--no-build-isolation", "--no-deps", ".")
-Invoke-Checked -Command ".\.venv\Scripts\pyinstaller.exe" -Arguments @("--clean", "--noconfirm", "--windowed", "--onefile", "--name", "fileops", "--paths", "src", "scripts/entrypoint.py")
+Invoke-Checked -Command ".\.venv\Scripts\pyinstaller.exe" -Arguments @("--clean", "--noconfirm", "--windowed", "--onefile", "--name", "fileops", "--specpath", "build", "--paths", "src", "scripts/entrypoint.py")
 
 Write-Host "Build completed: dist\\fileops.exe"

@@ -1,5 +1,6 @@
 ﻿from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -141,6 +142,8 @@ class FileOpsWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("FileOps 文件操作工具")
         self.resize(1160, 820)
+        cwd = Path.cwd()
+        self.default_workspace = str(Path(cwd.anchor) if cwd.anchor else cwd)
 
         self.operation_label_to_value = {
             "复制": "copy",
@@ -188,8 +191,8 @@ class FileOpsWindow(QMainWindow):
         self.operation_combo.currentTextChanged.connect(self._sync_operation_fields)
         config_layout.addWidget(self.operation_combo)
 
-        config_layout.addWidget(QLabel("工作区"))
-        self.workspace_edit = QLineEdit(str(Path.cwd()))
+        config_layout.addWidget(QLabel("工作区（安全范围）"))
+        self.workspace_edit = QLineEdit(self.default_workspace)
         config_layout.addWidget(self.workspace_edit, 1)
         browse_workspace_button = QPushButton("浏览")
         browse_workspace_button.clicked.connect(self._select_workspace)
@@ -388,6 +391,40 @@ class FileOpsWindow(QMainWindow):
     def _set_widget_enabled(self, widget: QWidget, enabled: bool) -> None:
         widget.setEnabled(enabled)
 
+    @staticmethod
+    def _is_within_workspace(path: Path, workspace: Path) -> bool:
+        try:
+            path.resolve(strict=False).relative_to(workspace.resolve(strict=False))
+            return True
+        except ValueError:
+            return False
+
+    def _normalize_workspace(self, workspace: Path, paths: list[Path]) -> tuple[Path, str | None]:
+        outside = [path for path in paths if not self._is_within_workspace(path, workspace)]
+        if not outside:
+            return workspace, None
+
+        candidates: list[str] = [str(workspace.resolve(strict=False))]
+        for path in paths:
+            resolved = path.resolve(strict=False)
+            if resolved.exists() and resolved.is_file():
+                candidates.append(str(resolved.parent))
+            else:
+                candidates.append(str(resolved))
+
+        try:
+            common_text = os.path.commonpath(candidates)
+        except ValueError as exc:
+            raise ValueError("工作区与源路径不在同一磁盘，请调整为同一盘后重试。") from exc
+
+        common = Path(common_text).resolve(strict=False)
+        if common.is_file():
+            common = common.parent
+        if not common.parts:
+            raise ValueError("无法自动推导工作区，请手动设置。")
+
+        return common, f"自动调整工作区为：{common}"
+
     def _sync_operation_fields(self) -> None:
         operation = self._current_operation()
 
@@ -520,6 +557,14 @@ class FileOpsWindow(QMainWindow):
             params["heading_mode"] = self.doc_mode_label_to_value[self.doc_mode_combo.currentText()]
             params["include_image_text"] = self.include_ocr_check.isChecked()
 
+        candidate_paths = list(sources)
+        if "destination" in params:
+            candidate_paths.append(Path(params["destination"]))
+
+        workspace, workspace_note = self._normalize_workspace(workspace, candidate_paths)
+        params["workspace"] = workspace
+        params["workspace_note"] = workspace_note
+
         return params
 
     def _execute_operation(self) -> None:
@@ -550,6 +595,11 @@ class FileOpsWindow(QMainWindow):
         self._append_log("----------------------------------------")
         self._append_log(f"开始执行：{self.operation_combo.currentText()}")
 
+        self.workspace_edit.setText(str(params["workspace"]))
+        workspace_note = params.get("workspace_note")
+        if workspace_note:
+            self._append_log(str(workspace_note))
+
         self.worker = OperationWorker(params, self.operation_value_to_label)
         self.worker.progress_changed.connect(self._on_worker_progress)
         self.worker.log_message.connect(self._on_worker_log)
@@ -566,3 +616,4 @@ def launch_gui() -> None:
 
 if __name__ == "__main__":
     launch_gui()
+

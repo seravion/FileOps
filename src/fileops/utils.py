@@ -17,7 +17,7 @@ def ensure_workspace_path(path: Path, workspace: Path) -> None:
     resolved_path = path.resolve(strict=False)
     resolved_workspace = workspace.resolve(strict=False)
     if not _is_relative_to(resolved_path, resolved_workspace):
-        raise ValueError(f"Path is outside workspace: {resolved_path}")
+        raise ValueError(f"路径超出工作区范围：{resolved_path}（工作区：{resolved_workspace}）")
 
 
 def _is_relative_to(path: Path, root: Path) -> bool:
@@ -42,3 +42,4 @@ def unique_path(path: Path) -> Path:
         if not candidate.exists():
             return candidate
         index += 1
+
