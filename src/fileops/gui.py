@@ -804,7 +804,6 @@ class FileOpsWindow(QMainWindow):
         show_rename = operation == "rename"
         show_delete = operation == "delete"
         show_split = operation == "split"
-        show_doc_split = operation == "doc_split"
 
         self._set_widget_enabled(self.destination_edit, show_destination)
         self._set_widget_enabled(self.rename_pattern_edit, show_rename)
@@ -812,10 +811,11 @@ class FileOpsWindow(QMainWindow):
         self._set_widget_enabled(self.trash_radio, show_delete)
         self._set_widget_enabled(self.hard_delete_radio, show_delete)
         self._set_widget_enabled(self.split_size_spin, show_split)
-        self._set_widget_enabled(self.doc_mode_combo, show_doc_split)
-        self._set_widget_enabled(self.import_format_combo, show_doc_split)
-        self._set_widget_enabled(self.export_format_combo, show_doc_split)
-        self._set_widget_enabled(self.include_ocr_check, show_doc_split)
+        # Keep document options selectable so users can pre-configure before switching operation.
+        self._set_widget_enabled(self.doc_mode_combo, True)
+        self._set_widget_enabled(self.import_format_combo, True)
+        self._set_widget_enabled(self.export_format_combo, True)
+        self._set_widget_enabled(self.include_ocr_check, True)
 
     def _set_running(self, running: bool) -> None:
         self.run_button.setEnabled(not running)
@@ -1041,3 +1041,8 @@ def launch_gui() -> None:
 
 if __name__ == "__main__":
     launch_gui()
+
+
+
+
+
