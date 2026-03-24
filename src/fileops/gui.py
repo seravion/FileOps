@@ -41,7 +41,7 @@ from .reporting import write_report
 TRANSLATIONS: dict[str, dict[str, str]] = {
     "zh": {
         "window_title": "FileOps 文件操作工具",
-        "subtitle": "支持复制/移动/重命名/删除/按大小拆分/文档拆分（标题分段 + 图片文字提取）",
+        "subtitle": "支持按大小拆分/文档拆分（标题分段 + 图片文字提取）",
         "group_basic": "基础配置",
         "label_operation": "操作类型",
         "label_language": "语言",
@@ -118,7 +118,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "en": {
         "window_title": "FileOps File Operations Tool",
-        "subtitle": "Supports copy/move/rename/delete/split-by-size/document split (heading split + OCR)",
+        "subtitle": "Supports split-by-size/document split (heading split + OCR)",
         "group_basic": "Basic Settings",
         "label_operation": "Operation",
         "label_language": "Language",
@@ -196,7 +196,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 }
 
 LANGUAGE_OPTIONS: list[tuple[str, str]] = [("zh", "中文"), ("en", "English")]
-OPERATION_VALUES: list[str] = ["copy", "move", "rename", "delete", "split", "doc_split"]
+OPERATION_VALUES: list[str] = ["split", "doc_split"]
 DOC_MODE_VALUES: list[str] = ["h1", "h2", "h1_h2"]
 
 
@@ -449,12 +449,6 @@ class FileOpsWindow(QMainWindow):
         options_layout.addLayout(row1)
 
         row2 = QHBoxLayout()
-        self.overwrite_label = QLabel("")
-        row2.addWidget(self.overwrite_label)
-        self.overwrite_combo = QComboBox()
-        self.overwrite_combo.addItems(["never", "always", "rename"])
-        row2.addWidget(self.overwrite_combo)
-
         self.rename_pattern_label = QLabel("")
         row2.addWidget(self.rename_pattern_label)
         self.rename_pattern_edit = QLineEdit("{stem}_{index}{ext}")
@@ -642,7 +636,6 @@ class FileOpsWindow(QMainWindow):
         self.options_group.setTitle(self._tr("group_options"))
         self.destination_label.setText(self._tr("label_destination"))
         self.browse_dest_button.setText(self._tr("button_browse"))
-        self.overwrite_label.setText(self._tr("label_overwrite"))
         self.rename_pattern_label.setText(self._tr("label_rename_pattern"))
         self.start_index_label.setText(self._tr("label_start_index"))
         self.trash_radio.setText(self._tr("radio_trash"))
@@ -675,7 +668,7 @@ class FileOpsWindow(QMainWindow):
                 self.progress_label.setText(self._tr("progress_not_started"))
 
     def _rebuild_operation_combo(self) -> None:
-        current_value = self._current_operation() if self.operation_combo.count() > 0 else "copy"
+        current_value = self._current_operation() if self.operation_combo.count() > 0 else "split"
         self.operation_combo.blockSignals(True)
         self.operation_combo.clear()
         for operation in self.operation_values:
@@ -699,7 +692,7 @@ class FileOpsWindow(QMainWindow):
 
     def _current_operation(self) -> str:
         value = self.operation_combo.currentData()
-        return str(value) if value else "copy"
+        return str(value) if value else "split"
 
     def _set_widget_enabled(self, widget: QWidget, enabled: bool) -> None:
         widget.setEnabled(enabled)
@@ -742,14 +735,12 @@ class FileOpsWindow(QMainWindow):
         operation = self._current_operation()
 
         show_destination = operation in {"copy", "move", "split", "doc_split"}
-        show_overwrite = operation in {"copy", "move", "rename", "split"}
         show_rename = operation == "rename"
         show_delete = operation == "delete"
         show_split = operation == "split"
         show_doc_split = operation == "doc_split"
 
         self._set_widget_enabled(self.destination_edit, show_destination)
-        self._set_widget_enabled(self.overwrite_combo, show_overwrite)
         self._set_widget_enabled(self.rename_pattern_edit, show_rename)
         self._set_widget_enabled(self.start_index_spin, show_rename)
         self._set_widget_enabled(self.trash_radio, show_delete)
@@ -861,7 +852,7 @@ class FileOpsWindow(QMainWindow):
             "workspace": workspace,
             "sources": sources,
             "dry_run": self.dry_run_check.isChecked(),
-            "overwrite": self.overwrite_combo.currentText().strip() or "never",
+            "overwrite": "never",
             "report_path": self.report_edit.text().strip(),
         }
 
