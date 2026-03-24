@@ -110,7 +110,7 @@ if (-not (Test-Path ".venv\\Scripts\\python.exe")) {
 $venvPython = ".\.venv\Scripts\python.exe"
 Invoke-Checked -Command $venvPython -Arguments @("-m", "pip", "install", "--upgrade", "pip")
 
-$requiredModules = @("pytest", "PyInstaller", "hatchling", "send2trash", "docx", "PIL", "pytesseract", "PySide6")
+$requiredModules = @("pytest", "PyInstaller", "hatchling", "send2trash", "docx", "PIL", "pytesseract", "PySide6", "pypdf", "cryptography")
 $missing = @()
 foreach ($module in $requiredModules) {
     if (-not (Test-Module -PythonPath $venvPython -Module $module)) {

@@ -68,10 +68,12 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "import_format_docx": "仅 DOCX",
         "import_format_markdown": "仅 Markdown",
         "import_format_txt": "仅 TXT",
+        "import_format_pdf": "仅 PDF",
         "export_format_auto": "原格式",
         "export_format_docx": "DOCX",
         "export_format_md": "Markdown",
         "export_format_txt": "TXT",
+        "export_format_pdf": "PDF",
         "check_include_ocr": "提取图片文字（OCR）",
         "group_run": "执行",
         "check_dry_run": "预演模式（不写入）",
@@ -156,10 +158,12 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "import_format_docx": "DOCX only",
         "import_format_markdown": "Markdown only",
         "import_format_txt": "TXT only",
+        "import_format_pdf": "PDF only",
         "export_format_auto": "Keep source format",
         "export_format_docx": "DOCX",
         "export_format_md": "Markdown",
         "export_format_txt": "TXT",
+        "export_format_pdf": "PDF",
         "check_include_ocr": "Extract image text (OCR)",
         "group_run": "Run",
         "check_dry_run": "Dry run mode (no writes)",
@@ -220,8 +224,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 LANGUAGE_OPTIONS: list[tuple[str, str]] = [("zh", "中文"), ("en", "English")]
 OPERATION_VALUES: list[str] = ["split", "doc_split"]
 DOC_MODE_VALUES: list[str] = ["h1", "h2", "h1_h2"]
-IMPORT_FORMAT_VALUES: list[str] = ["auto", "docx", "markdown", "txt"]
-EXPORT_FORMAT_VALUES: list[str] = ["auto", "docx", "md", "txt"]
+IMPORT_FORMAT_VALUES: list[str] = ["auto", "docx", "markdown", "txt", "pdf"]
+EXPORT_FORMAT_VALUES: list[str] = ["auto", "docx", "md", "txt", "pdf"]
 
 
 def _translate(language: str, key: str, **kwargs: object) -> str:
@@ -883,17 +887,21 @@ class FileOpsWindow(QMainWindow):
             return "Markdown Document (*.md *.markdown);;All Files (*.*)"
         if input_format == "txt":
             return "Text File (*.txt);;All Files (*.*)"
-        return "Supported Documents (*.docx *.md *.markdown *.txt);;All Files (*.*)"
+        if input_format == "pdf":
+            return "PDF Document (*.pdf);;All Files (*.*)"
+        return "Supported Documents (*.docx *.md *.markdown *.txt *.pdf);;All Files (*.*)"
 
     @staticmethod
     def _source_matches_doc_input_format(source: Path, input_format: str) -> bool:
         ext = source.suffix.lower()
         if input_format == "auto":
-            return ext in {".docx", ".md", ".markdown", ".txt"}
+            return ext in {".docx", ".md", ".markdown", ".txt", ".pdf"}
         if input_format == "docx":
             return ext == ".docx"
         if input_format == "markdown":
             return ext in {".md", ".markdown"}
+        if input_format == "pdf":
+            return ext == ".pdf"
         return ext == ".txt"
 
     def _add_files(self) -> None:

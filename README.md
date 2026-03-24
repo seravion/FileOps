@@ -15,11 +15,11 @@ FileOps 是一个桌面文件处理工具，支持图形界面点击操作。
 - 操作类型选择：在“操作类型”下拉中选择对应功能
 - 文档拆分：
   - 选择“文档拆分”
-  - 添加 .docx / .md / .txt 文档
-  - 设置输出目录（输入 .docx 时，输出会保持为 .docx 分片，尽量保留原格式/表格/图片）
+  - 添加 .docx / .md / .txt / .pdf 文档
+  - 设置输出目录（输入 .docx 时，输出会保持为 .docx 分片，尽量保留原格式/表格/图片；输入 .pdf 时默认输出 .pdf 分片，也可导出为 txt/md/docx）
   - 设置“标题拆分规则”（一级、二级、一级+二级）
-  - 可选“导入格式”：自动 / DOCX / Markdown / TXT（会限制可添加源文件类型）
-  - 可选“导出格式”：原格式 / DOCX / Markdown / TXT
+  - 可选“导入格式”：自动 / DOCX / Markdown / TXT / PDF（会限制可添加源文件类型）
+  - 可选“导出格式”：原格式 / DOCX / Markdown / TXT / PDF（PDF 导出目前仅支持 PDF 输入）
 - 按大小拆分：
   - 选择“按大小拆分”
   - 设置“分片大小(MB)”
@@ -61,3 +61,7 @@ powershell -ExecutionPolicy Bypass -File scripts/build_installer.ps1
 ## OCR 说明
 - 图片文字识别依赖 `pytesseract` 与本机 Tesseract OCR。
 - 如未安装 Tesseract，文档拆分仍可执行，但图片文字可能无法识别。
+
+## PDF 说明
+- PDF 优先按文档目录（书签）拆分；无目录时回退到标题文本规则。
+- 对加密 PDF（含权限保护），请先去除密码/限制后再拆分。

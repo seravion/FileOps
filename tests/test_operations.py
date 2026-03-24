@@ -290,3 +290,423 @@ def test_doc_split_import_format_mismatch() -> None:
         assert len(results) == 1
         assert results[0].status == OperationStatus.FAILED
         assert "import format" in results[0].message.lower()
+
+
+def test_doc_split_pdf_by_heading_with_fake_reader(monkeypatch) -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "paper.pdf"
+        src.write_bytes(b"%PDF-1.4 fake")
+
+        class _FakePdfPage:
+            def __init__(self, text: str) -> None:
+                self._text = text
+
+            def extract_text(self) -> str:
+                return self._text
+
+        class _FakePdfReader:
+            def __init__(self, _stream: object) -> None:
+                self.pages = [
+                    _FakePdfPage("封面\n第一章 绪论\n这里是第一章内容\n1.1 研究背景\n背景内容"),
+                    _FakePdfPage("第二章 方法\n方法内容"),
+                ]
+
+        import fileops.document_split as document_split
+
+        monkeypatch.setattr(document_split, "PdfReader", _FakePdfReader)
+
+        out_dir = root / "pdf_parts"
+        results = split_documents_by_structure(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            heading_mode="h1_h2",
+            include_image_text=False,
+            input_format="pdf",
+            output_format="txt",
+        )
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.SUCCESS
+        assert (out_dir / "paper_split_index.json").exists()
+
+        produced_txt = sorted(out_dir.glob("paper_*.txt"))
+        assert len(produced_txt) >= 3
+        merged_text = "\n".join(path.read_text(encoding="utf-8") for path in produced_txt)
+        assert "第一章 绪论" in merged_text
+        assert "1.1 研究背景" in merged_text
+        assert "第二章 方法" in merged_text
+
+
+def test_doc_split_pdf_import_format_mismatch() -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "sample.pdf"
+        src.write_bytes(b"%PDF-1.4 fake")
+
+        out_dir = root / "doc_parts"
+        results = split_documents_by_structure(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            heading_mode="h1",
+            include_image_text=False,
+            input_format="markdown",
+        )
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.FAILED
+        assert "import format" in results[0].message.lower()
+
+
+def test_doc_split_pdf_heading_without_spaces(monkeypatch) -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "thesis.pdf"
+        src.write_bytes(b"%PDF-1.4 fake")
+
+        class _FakePdfPage:
+            def __init__(self, text: str) -> None:
+                self._text = text
+
+            def extract_text(self) -> str:
+                return self._text
+
+        class _FakePdfReader:
+            def __init__(self, _stream: object) -> None:
+                self.pages = [
+                    _FakePdfPage("封面\n第一章绪论\n正文A\n1.1研究背景\n正文B\n第二章方法\n正文C"),
+                ]
+
+        import fileops.document_split as document_split
+
+        monkeypatch.setattr(document_split, "PdfReader", _FakePdfReader)
+
+        out_dir_h1 = root / "pdf_h1"
+        h1_results = split_documents_by_structure(
+            sources=[src],
+            destination=out_dir_h1,
+            workspace=root,
+            dry_run=False,
+            heading_mode="h1",
+            include_image_text=False,
+            input_format="pdf",
+            output_format="txt",
+        )
+
+        assert len(h1_results) == 1
+        assert h1_results[0].status == OperationStatus.SUCCESS
+        h1_files = sorted(out_dir_h1.glob("thesis_*.txt"))
+        assert len(h1_files) >= 2
+
+        out_dir_h1_h2 = root / "pdf_h1h2"
+        h1_h2_results = split_documents_by_structure(
+            sources=[src],
+            destination=out_dir_h1_h2,
+            workspace=root,
+            dry_run=False,
+            heading_mode="h1_h2",
+            include_image_text=False,
+            input_format="pdf",
+            output_format="txt",
+        )
+
+        assert len(h1_h2_results) == 1
+        assert h1_h2_results[0].status == OperationStatus.SUCCESS
+        h1_h2_files = sorted(out_dir_h1_h2.glob("thesis_*.txt"))
+        assert len(h1_h2_files) > len(h1_files)
+
+        h1_h2_text = "\n".join(path.read_text(encoding="utf-8") for path in h1_h2_files)
+        assert "第一章绪论" in h1_h2_text
+        assert "1.1研究背景" in h1_h2_text
+        assert "第二章方法" in h1_h2_text
+
+
+def test_doc_split_pdf_auto_output_keeps_pdf(monkeypatch) -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "manual.pdf"
+
+        from pypdf import PdfReader, PdfWriter
+
+        writer = PdfWriter()
+        writer.add_blank_page(width=595, height=842)
+        writer.add_blank_page(width=595, height=842)
+        writer.add_blank_page(width=595, height=842)
+        with src.open("wb") as stream:
+            writer.write(stream)
+
+        import fileops.document_split as document_split
+
+        monkeypatch.setattr(
+            document_split,
+            "_split_pdf_document",
+            lambda *_args, **_kwargs: [
+                {"title": "第一章", "lines": ["第一章"], "start_page": 0, "end_page": 1},
+                {"title": "第二章", "lines": ["第二章"], "start_page": 1, "end_page": 3},
+            ],
+        )
+
+        out_dir = root / "pdf_out"
+        results = split_documents_by_structure(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            heading_mode="h1",
+            include_image_text=False,
+            input_format="pdf",
+            output_format="auto",
+        )
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.SUCCESS
+
+        produced_pdf = sorted(out_dir.glob("manual_*.pdf"))
+        assert len(produced_pdf) == 2
+        assert not list(out_dir.glob("manual_*.txt"))
+
+        page_counts = [len(PdfReader(str(path)).pages) for path in produced_pdf]
+        assert page_counts == [1, 2]
+
+
+def test_doc_split_non_pdf_export_pdf_not_supported() -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "sample.md"
+        src.write_text("# A\nBody\n", encoding="utf-8")
+
+        out_dir = root / "doc_parts"
+        results = split_documents_by_structure(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            heading_mode="h1",
+            include_image_text=False,
+            input_format="markdown",
+            output_format="pdf",
+        )
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.FAILED
+        assert "only when the input is PDF" in results[0].message
+
+
+def test_doc_split_pdf_ignores_repeated_running_header(monkeypatch) -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "thesis.pdf"
+        src.write_bytes(b"%PDF-1.4 fake")
+
+        class _FakePdfPage:
+            def __init__(self, text: str) -> None:
+                self._text = text
+
+            def extract_text(self) -> str:
+                return self._text
+
+        class _FakePdfReader:
+            def __init__(self, _stream: object) -> None:
+                self.pages = [
+                    _FakePdfPage("第一章 绪论\n正文A\n第1页"),
+                    _FakePdfPage("第一章 绪论\n正文B\n第2页"),
+                    _FakePdfPage("第一章 绪论\n第二章 方法\n正文C\n第3页"),
+                    _FakePdfPage("第二章 方法\n正文D\n第4页"),
+                ]
+
+        import fileops.document_split as document_split
+
+        monkeypatch.setattr(document_split, "PdfReader", _FakePdfReader)
+
+        out_dir = root / "pdf_parts"
+        results = split_documents_by_structure(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            heading_mode="h1",
+            include_image_text=False,
+            input_format="pdf",
+            output_format="txt",
+        )
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.SUCCESS
+        produced_txt = sorted(out_dir.glob("thesis_*.txt"))
+        assert len(produced_txt) == 2
+
+        merged_text = "\n".join(path.read_text(encoding="utf-8") for path in produced_txt)
+        assert "正文A" in merged_text
+        assert "正文D" in merged_text
+
+
+def test_doc_split_pdf_prefers_outline_for_chapters(monkeypatch) -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "thesis.pdf"
+        src.write_bytes(b"%PDF-1.4 fake")
+
+        class _FakeDest:
+            def __init__(self, title: str, page: int) -> None:
+                self.title = title
+                self.page = page
+
+        class _FakePdfPage:
+            def __init__(self, text: str) -> None:
+                self._text = text
+
+            def extract_text(self) -> str:
+                return self._text
+
+        class _FakePdfReader:
+            def __init__(self, _stream: object) -> None:
+                self.pages = [
+                    _FakePdfPage("封面"),
+                    _FakePdfPage("摘要"),
+                    _FakePdfPage("第一章 绪论 正文"),
+                    _FakePdfPage("第二章 相关理论基础 正文"),
+                    _FakePdfPage("第三章 模型异构 正文"),
+                ]
+                self.outline = [
+                    _FakeDest("摘要", 1),
+                    _FakeDest("第1章 绪论", 2),
+                    _FakeDest("第2章 相关理论基础", 3),
+                    _FakeDest("第3章 模型异构", 4),
+                ]
+
+            def get_destination_page_number(self, node: _FakeDest) -> int:
+                return node.page
+
+        import fileops.document_split as document_split
+
+        monkeypatch.setattr(document_split, "PdfReader", _FakePdfReader)
+
+        out_dir = root / "outline_parts"
+        results = split_documents_by_structure(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            heading_mode="h1",
+            include_image_text=False,
+            input_format="pdf",
+            output_format="txt",
+        )
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.SUCCESS
+        produced_txt = sorted(out_dir.glob("thesis_*.txt"))
+        assert len(produced_txt) == 5
+
+        index_file = out_dir / "thesis_split_index.json"
+        assert index_file.exists()
+        index_text = index_file.read_text(encoding="utf-8")
+        assert "第1章 绪论" in index_text
+        assert "第2章 相关理论基础" in index_text
+
+
+def test_doc_split_pdf_outline_h2_level(monkeypatch) -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "thesis.pdf"
+        src.write_bytes(b"%PDF-1.4 fake")
+
+        class _FakeDest:
+            def __init__(self, title: str, page: int) -> None:
+                self.title = title
+                self.page = page
+
+        class _FakePdfPage:
+            def __init__(self, text: str) -> None:
+                self._text = text
+
+            def extract_text(self) -> str:
+                return self._text
+
+        class _FakePdfReader:
+            def __init__(self, _stream: object) -> None:
+                self.pages = [
+                    _FakePdfPage("封面"),
+                    _FakePdfPage("第一章"),
+                    _FakePdfPage("1.1 背景"),
+                    _FakePdfPage("1.2 方法"),
+                    _FakePdfPage("第二章"),
+                ]
+                self.outline = [
+                    _FakeDest("第1章 绪论", 1),
+                    [
+                        _FakeDest("1.1 研究背景", 2),
+                        _FakeDest("1.2 研究方法", 3),
+                    ],
+                    _FakeDest("第2章 方法", 4),
+                ]
+
+            def get_destination_page_number(self, node: _FakeDest) -> int:
+                return node.page
+
+        import fileops.document_split as document_split
+
+        monkeypatch.setattr(document_split, "PdfReader", _FakePdfReader)
+
+        out_dir = root / "outline_h2"
+        results = split_documents_by_structure(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            heading_mode="h2",
+            include_image_text=False,
+            input_format="pdf",
+            output_format="txt",
+        )
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.SUCCESS
+        produced_txt = sorted(out_dir.glob("thesis_*.txt"))
+        assert len(produced_txt) == 3
+        merged_text = "\n".join(path.read_text(encoding="utf-8") for path in produced_txt)
+        assert "1.1 背景" in merged_text
+        assert "1.2 方法" in merged_text
+        index_text = (out_dir / "thesis_split_index.json").read_text(encoding="utf-8")
+        assert "1.1 研究背景" in index_text
+        assert "1.2 研究方法" in index_text
+
+
+def test_doc_split_pdf_encrypted_requires_password(monkeypatch) -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "secret.pdf"
+        src.write_bytes(b"%PDF-1.4 fake")
+
+        class _FakePdfReader:
+            def __init__(self, _stream: object) -> None:
+                self.is_encrypted = True
+                self.pages = []
+                self.outline = []
+
+            def decrypt(self, _password: str) -> int:
+                return 0
+
+        import fileops.document_split as document_split
+
+        monkeypatch.setattr(document_split, "PdfReader", _FakePdfReader)
+
+        out_dir = root / "secret_parts"
+        results = split_documents_by_structure(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            heading_mode="h1",
+            include_image_text=False,
+            input_format="pdf",
+            output_format="txt",
+        )
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.FAILED
+        assert "requires a password" in results[0].message
