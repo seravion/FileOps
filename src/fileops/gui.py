@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal, Qt
+from PySide6.QtGui import QAction, QActionGroup
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -19,12 +20,14 @@ from PySide6.QtWidgets import (
     QListWidget,
     QListWidgetItem,
     QMainWindow,
+    QMenu,
     QMessageBox,
     QPlainTextEdit,
     QPushButton,
     QProgressBar,
     QRadioButton,
     QSpinBox,
+    QToolButton,
     QVBoxLayout,
     QWidget,
 )
@@ -42,6 +45,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "group_basic": "基础配置",
         "label_operation": "操作类型",
         "label_language": "语言",
+        "button_settings": "设置",
         "label_workspace": "工作区（安全范围）",
         "button_browse": "浏览",
         "group_sources": "源文件列表",
@@ -118,6 +122,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "group_basic": "Basic Settings",
         "label_operation": "Operation",
         "label_language": "Language",
+        "button_settings": "Settings",
         "label_workspace": "Workspace (safe scope)",
         "button_browse": "Browse",
         "group_sources": "Source List",
@@ -359,11 +364,34 @@ class FileOpsWindow(QMainWindow):
         header = QFrame()
         header_layout = QVBoxLayout(header)
         header_layout.setContentsMargins(0, 0, 0, 0)
-        title = QLabel("FileOps")
-        title.setObjectName("titleLabel")
+        top_row = QHBoxLayout()
+        top_row.setContentsMargins(0, 0, 0, 0)
+        top_row.setSpacing(8)
+        self.title_label = QLabel("FileOps")
+        self.title_label.setObjectName("titleLabel")
+        top_row.addWidget(self.title_label)
+        top_row.addStretch(1)
+
+        self.settings_button = QToolButton()
+        self.settings_button.setPopupMode(QToolButton.InstantPopup)
+        self.settings_menu = QMenu(self.settings_button)
+        self.language_menu = self.settings_menu.addMenu("")
+        self.language_action_group = QActionGroup(self)
+        self.language_action_group.setExclusive(True)
+        self.language_actions: dict[str, QAction] = {}
+        for code, label in LANGUAGE_OPTIONS:
+            action = self.language_menu.addAction(label)
+            action.setCheckable(True)
+            action.setData(code)
+            self.language_action_group.addAction(action)
+            self.language_actions[code] = action
+        self.language_action_group.triggered.connect(self._on_language_action_triggered)
+        self.settings_button.setMenu(self.settings_menu)
+        top_row.addWidget(self.settings_button, alignment=Qt.AlignRight)
+
         self.subtitle_label = QLabel("")
         self.subtitle_label.setObjectName("subTitleLabel")
-        header_layout.addWidget(title)
+        header_layout.addLayout(top_row)
         header_layout.addWidget(self.subtitle_label)
         root_layout.addWidget(header)
 
@@ -374,14 +402,6 @@ class FileOpsWindow(QMainWindow):
         self.operation_combo = QComboBox()
         self.operation_combo.currentIndexChanged.connect(lambda _idx: self._sync_operation_fields())
         config_layout.addWidget(self.operation_combo)
-
-        self.language_label = QLabel("")
-        config_layout.addWidget(self.language_label)
-        self.language_combo = QComboBox()
-        for code, label in LANGUAGE_OPTIONS:
-            self.language_combo.addItem(label, code)
-        self.language_combo.currentIndexChanged.connect(lambda _idx: self._on_language_changed())
-        config_layout.addWidget(self.language_combo)
 
         self.workspace_label = QLabel("")
         config_layout.addWidget(self.workspace_label)
@@ -555,10 +575,23 @@ class FileOpsWindow(QMainWindow):
                 border-radius: 6px;
                 padding: 6px 12px;
             }
+            QToolButton {
+                background: #e2e8f0;
+                border: 1px solid #cbd5e1;
+                border-radius: 6px;
+                padding: 6px 12px;
+            }
             QPushButton:hover {
                 background: #d5deea;
             }
+            QToolButton:hover {
+                background: #d5deea;
+            }
             QPushButton:disabled {
+                color: #94a3b8;
+                background: #f1f5f9;
+            }
+            QToolButton:disabled {
                 color: #94a3b8;
                 background: #f1f5f9;
             }
@@ -583,8 +616,8 @@ class FileOpsWindow(QMainWindow):
             """
         )
 
-    def _on_language_changed(self) -> None:
-        code = str(self.language_combo.currentData() or "zh")
+    def _on_language_action_triggered(self, action: QAction) -> None:
+        code = str(action.data() or "zh")
         if code == self.language:
             return
         self.language = code
@@ -595,7 +628,10 @@ class FileOpsWindow(QMainWindow):
         self.subtitle_label.setText(self._tr("subtitle"))
         self.config_group.setTitle(self._tr("group_basic"))
         self.operation_label.setText(self._tr("label_operation"))
-        self.language_label.setText(self._tr("label_language"))
+        self.settings_button.setText(self._tr("button_settings"))
+        self.language_menu.setTitle(self._tr("label_language"))
+        for code, action in self.language_actions.items():
+            action.setChecked(code == self.language)
         self.workspace_label.setText(self._tr("label_workspace"))
         self.browse_workspace_button.setText(self._tr("button_browse"))
         self.source_group.setTitle(self._tr("group_sources"))
@@ -725,7 +761,7 @@ class FileOpsWindow(QMainWindow):
     def _set_running(self, running: bool) -> None:
         self.run_button.setEnabled(not running)
         self.operation_combo.setEnabled(not running)
-        self.language_combo.setEnabled(not running)
+        self.settings_button.setEnabled(not running)
 
     def _append_log(self, text: str) -> None:
         self.log_text.appendPlainText(text)
