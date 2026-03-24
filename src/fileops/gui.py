@@ -62,6 +62,16 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "radio_hard_delete": "永久删除",
         "label_split_size": "分片大小(MB)",
         "label_doc_mode": "标题拆分规则",
+        "label_import_format": "导入格式",
+        "label_export_format": "导出格式",
+        "import_format_auto": "自动（支持全部）",
+        "import_format_docx": "仅 DOCX",
+        "import_format_markdown": "仅 Markdown",
+        "import_format_txt": "仅 TXT",
+        "export_format_auto": "原格式",
+        "export_format_docx": "DOCX",
+        "export_format_md": "Markdown",
+        "export_format_txt": "TXT",
         "check_include_ocr": "提取图片文字（OCR）",
         "group_run": "执行",
         "check_dry_run": "预演模式（不写入）",
@@ -90,6 +100,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "error_no_sources": "请先添加至少一个源文件或目录。",
         "error_missing_destination": "该操作需要指定输出目录/目标路径。",
         "error_missing_pattern": "请填写重命名模板。",
+        "error_source_format_mismatch": "源文件格式与“导入格式”设置不匹配：{name}",
         "log_start_execution": "开始执行：{operation}",
         "op_copy": "复制",
         "op_move": "移动",
@@ -139,6 +150,16 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "radio_hard_delete": "Delete Permanently",
         "label_split_size": "Chunk Size (MB)",
         "label_doc_mode": "Heading Split Rule",
+        "label_import_format": "Input Format",
+        "label_export_format": "Output Format",
+        "import_format_auto": "Auto (all supported)",
+        "import_format_docx": "DOCX only",
+        "import_format_markdown": "Markdown only",
+        "import_format_txt": "TXT only",
+        "export_format_auto": "Keep source format",
+        "export_format_docx": "DOCX",
+        "export_format_md": "Markdown",
+        "export_format_txt": "TXT",
         "check_include_ocr": "Extract image text (OCR)",
         "group_run": "Run",
         "check_dry_run": "Dry run mode (no writes)",
@@ -167,6 +188,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "error_no_sources": "Add at least one source file or folder first.",
         "error_missing_destination": "This operation requires an output directory or target path.",
         "error_missing_pattern": "Please provide a rename pattern.",
+        "error_source_format_mismatch": "Source format does not match import format setting: {name}",
         "log_start_execution": "Start operation: {operation}",
         "op_copy": "Copy",
         "op_move": "Move",
@@ -198,6 +220,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 LANGUAGE_OPTIONS: list[tuple[str, str]] = [("zh", "中文"), ("en", "English")]
 OPERATION_VALUES: list[str] = ["split", "doc_split"]
 DOC_MODE_VALUES: list[str] = ["h1", "h2", "h1_h2"]
+IMPORT_FORMAT_VALUES: list[str] = ["auto", "docx", "markdown", "txt"]
+EXPORT_FORMAT_VALUES: list[str] = ["auto", "docx", "md", "txt"]
 
 
 def _translate(language: str, key: str, **kwargs: object) -> str:
@@ -324,6 +348,8 @@ class OperationWorker(QThread):
                 dry_run=dry_run,
                 heading_mode=str(self.params["heading_mode"]),
                 include_image_text=bool(self.params["include_image_text"]),
+                input_format=str(self.params.get("input_format", "auto")),
+                output_format=str(self.params.get("output_format", "auto")),
             )
 
         return delete_items(
@@ -344,6 +370,8 @@ class FileOpsWindow(QMainWindow):
         self.language = "zh"
         self.operation_values = OPERATION_VALUES[:]
         self.doc_mode_values = DOC_MODE_VALUES[:]
+        self.import_format_values = IMPORT_FORMAT_VALUES[:]
+        self.export_format_values = EXPORT_FORMAT_VALUES[:]
 
         self.worker: OperationWorker | None = None
         self._build_ui()
@@ -491,6 +519,20 @@ class FileOpsWindow(QMainWindow):
         row3.addWidget(self.include_ocr_check)
         row3.addStretch(1)
         options_layout.addLayout(row3)
+
+        row4 = QHBoxLayout()
+        self.import_format_label = QLabel("")
+        row4.addWidget(self.import_format_label)
+        self.import_format_combo = QComboBox()
+        row4.addWidget(self.import_format_combo)
+
+        row4.addSpacing(20)
+        self.export_format_label = QLabel("")
+        row4.addWidget(self.export_format_label)
+        self.export_format_combo = QComboBox()
+        row4.addWidget(self.export_format_combo)
+        row4.addStretch(1)
+        options_layout.addLayout(row4)
 
         root_layout.addWidget(self.options_group)
 
@@ -642,6 +684,8 @@ class FileOpsWindow(QMainWindow):
         self.hard_delete_radio.setText(self._tr("radio_hard_delete"))
         self.split_size_label.setText(self._tr("label_split_size"))
         self.doc_mode_label.setText(self._tr("label_doc_mode"))
+        self.import_format_label.setText(self._tr("label_import_format"))
+        self.export_format_label.setText(self._tr("label_export_format"))
         self.include_ocr_check.setText(self._tr("check_include_ocr"))
         self.run_group.setTitle(self._tr("group_run"))
         self.dry_run_check.setText(self._tr("check_dry_run"))
@@ -652,6 +696,8 @@ class FileOpsWindow(QMainWindow):
 
         self._rebuild_operation_combo()
         self._rebuild_doc_mode_combo()
+        self._rebuild_import_format_combo()
+        self._rebuild_export_format_combo()
         self._sync_operation_fields()
 
         if initial:
@@ -686,6 +732,26 @@ class FileOpsWindow(QMainWindow):
         target_index = self.doc_mode_combo.findData(current_value)
         self.doc_mode_combo.setCurrentIndex(target_index if target_index >= 0 else 0)
         self.doc_mode_combo.blockSignals(False)
+
+    def _rebuild_import_format_combo(self) -> None:
+        current_value = str(self.import_format_combo.currentData() or "auto") if self.import_format_combo.count() > 0 else "auto"
+        self.import_format_combo.blockSignals(True)
+        self.import_format_combo.clear()
+        for value in self.import_format_values:
+            self.import_format_combo.addItem(self._tr(f"import_format_{value}"), value)
+        target_index = self.import_format_combo.findData(current_value)
+        self.import_format_combo.setCurrentIndex(target_index if target_index >= 0 else 0)
+        self.import_format_combo.blockSignals(False)
+
+    def _rebuild_export_format_combo(self) -> None:
+        current_value = str(self.export_format_combo.currentData() or "auto") if self.export_format_combo.count() > 0 else "auto"
+        self.export_format_combo.blockSignals(True)
+        self.export_format_combo.clear()
+        for value in self.export_format_values:
+            self.export_format_combo.addItem(self._tr(f"export_format_{value}"), value)
+        target_index = self.export_format_combo.findData(current_value)
+        self.export_format_combo.setCurrentIndex(target_index if target_index >= 0 else 0)
+        self.export_format_combo.blockSignals(False)
 
     def _operation_value_to_label(self) -> dict[str, str]:
         return {operation: self._tr(f"op_{operation}") for operation in self.operation_values}
@@ -747,6 +813,8 @@ class FileOpsWindow(QMainWindow):
         self._set_widget_enabled(self.hard_delete_radio, show_delete)
         self._set_widget_enabled(self.split_size_spin, show_split)
         self._set_widget_enabled(self.doc_mode_combo, show_doc_split)
+        self._set_widget_enabled(self.import_format_combo, show_doc_split)
+        self._set_widget_enabled(self.export_format_combo, show_doc_split)
         self._set_widget_enabled(self.include_ocr_check, show_doc_split)
 
     def _set_running(self, running: bool) -> None:
@@ -806,11 +874,36 @@ class FileOpsWindow(QMainWindow):
         if selected:
             self.report_edit.setText(selected)
 
+    def _doc_input_file_filter(self) -> str:
+        input_format = str(self.import_format_combo.currentData() or "auto")
+
+        if input_format == "docx":
+            return "Word Document (*.docx);;All Files (*.*)"
+        if input_format == "markdown":
+            return "Markdown Document (*.md *.markdown);;All Files (*.*)"
+        if input_format == "txt":
+            return "Text File (*.txt);;All Files (*.*)"
+        return "Supported Documents (*.docx *.md *.markdown *.txt);;All Files (*.*)"
+
+    @staticmethod
+    def _source_matches_doc_input_format(source: Path, input_format: str) -> bool:
+        ext = source.suffix.lower()
+        if input_format == "auto":
+            return ext in {".docx", ".md", ".markdown", ".txt"}
+        if input_format == "docx":
+            return ext == ".docx"
+        if input_format == "markdown":
+            return ext in {".md", ".markdown"}
+        return ext == ".txt"
+
     def _add_files(self) -> None:
+        operation = self._current_operation()
+        file_filter = self._doc_input_file_filter() if operation == "doc_split" else ""
         files, _ = QFileDialog.getOpenFileNames(
             self,
             self._tr("dialog_select_file"),
             self.workspace_edit.text().strip() or str(Path.cwd()),
+            file_filter,
         )
         for file_path in files:
             self._append_source(file_path)
@@ -878,6 +971,12 @@ class FileOpsWindow(QMainWindow):
         if operation == "doc_split":
             params["heading_mode"] = str(self.doc_mode_combo.currentData() or "h1")
             params["include_image_text"] = self.include_ocr_check.isChecked()
+            params["input_format"] = str(self.import_format_combo.currentData() or "auto")
+            params["output_format"] = str(self.export_format_combo.currentData() or "auto")
+
+            for source in sources:
+                if not self._source_matches_doc_input_format(source, str(params["input_format"])):
+                    raise ValueError(self._tr("error_source_format_mismatch", name=source.name))
 
         candidate_paths = list(sources)
         if "destination" in params:

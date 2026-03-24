@@ -15,9 +15,11 @@ FileOps 是一个桌面文件处理工具，支持图形界面点击操作。
 - 操作类型选择：在“操作类型”下拉中选择对应功能
 - 文档拆分：
   - 选择“文档拆分”
-  - 添加 `.docx` / `.md` / `.txt` 文档
-  - 设置输出目录
+  - 添加 .docx / .md / .txt 文档
+  - 设置输出目录（输入 .docx 时，输出会保持为 .docx 分片，尽量保留原格式/表格/图片）
   - 设置“标题拆分规则”（一级、二级、一级+二级）
+  - Import format selectable: Auto / DOCX / Markdown / TXT (limits allowed source files)
+  - Export format selectable: Keep source / DOCX / Markdown / TXT
   - 勾选“提取图片文字（OCR）”可尝试识别文档中的图片文字
 - 按大小拆分：
   - 选择“按大小拆分”
