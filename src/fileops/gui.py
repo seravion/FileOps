@@ -950,6 +950,11 @@ class FileOpsWindow(QMainWindow):
         widget.setEnabled(enabled)
 
     @staticmethod
+    def _set_widgets_visible(widgets: list[QWidget], visible: bool) -> None:
+        for widget in widgets:
+            widget.setVisible(visible)
+
+    @staticmethod
     def _is_within_workspace(path: Path, workspace: Path) -> bool:
         try:
             path.resolve(strict=False).relative_to(workspace.resolve(strict=False))
@@ -988,27 +993,47 @@ class FileOpsWindow(QMainWindow):
 
         show_destination = operation in {"split", "doc_split", "word_format"}
         show_split = operation == "split"
+        show_doc_split = operation == "doc_split"
+        show_word_format = operation == "word_format"
 
         self._set_widget_enabled(self.destination_edit, show_destination)
         self._set_widget_enabled(self.browse_dest_button, show_destination)
-        self._set_widget_enabled(self.overwrite_combo, show_split)
         self._set_widget_enabled(self.split_size_spin, show_split)
+        self._set_widget_enabled(self.doc_mode_combo, show_doc_split)
+        self._set_widget_enabled(self.import_format_combo, show_doc_split)
+        self._set_widget_enabled(self.export_format_combo, show_doc_split)
+        self._set_widget_enabled(self.include_ocr_check, show_doc_split)
+        self._set_widget_enabled(self.template_combo, show_word_format)
+        self._set_widget_enabled(self.import_template_button, show_word_format)
+        self._set_widget_enabled(self.refresh_template_button, show_word_format)
 
-        # Keep advanced options selectable so users can pre-configure before switching operation.
-        self._set_widget_enabled(self.doc_mode_combo, True)
-        self._set_widget_enabled(self.import_format_combo, True)
-        self._set_widget_enabled(self.export_format_combo, True)
-        self._set_widget_enabled(self.include_ocr_check, True)
-        self._set_widget_enabled(self.template_combo, True)
-        self._set_widget_enabled(self.import_template_button, True)
-        self._set_widget_enabled(self.refresh_template_button, True)
-
-        self.rename_pattern_label.setVisible(False)
-        self.rename_pattern_edit.setVisible(False)
-        self.start_index_label.setVisible(False)
-        self.start_index_spin.setVisible(False)
-        self.trash_radio.setVisible(False)
-        self.hard_delete_radio.setVisible(False)
+        self._set_widgets_visible(
+            [self.destination_label, self.destination_edit, self.browse_dest_button],
+            show_destination,
+        )
+        self._set_widgets_visible(
+            [
+                self.overwrite_label,
+                self.overwrite_combo,
+                self.rename_pattern_label,
+                self.rename_pattern_edit,
+                self.start_index_label,
+                self.start_index_spin,
+                self.trash_radio,
+                self.hard_delete_radio,
+            ],
+            False,
+        )
+        self._set_widgets_visible([self.split_size_label, self.split_size_spin], show_split)
+        self._set_widgets_visible([self.doc_mode_label, self.doc_mode_combo, self.include_ocr_check], show_doc_split)
+        self._set_widgets_visible(
+            [self.import_format_label, self.import_format_combo, self.export_format_label, self.export_format_combo],
+            show_doc_split,
+        )
+        self._set_widgets_visible(
+            [self.template_label, self.template_combo, self.import_template_button, self.refresh_template_button],
+            show_word_format,
+        )
 
     def _set_running(self, running: bool) -> None:
         self.run_button.setEnabled(not running)
