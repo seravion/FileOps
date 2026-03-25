@@ -34,6 +34,7 @@ from PySide6.QtWidgets import (
 
 from .document_split import split_documents_by_structure
 from .models import OperationResult, RunReport
+from .word_template import format_word_documents, import_word_template, list_word_templates
 from .operations import CommonOptions, copy_items, delete_items, move_items, rename_items, split_items
 from .reporting import write_report
 
@@ -41,7 +42,7 @@ from .reporting import write_report
 TRANSLATIONS: dict[str, dict[str, str]] = {
     "zh": {
         "window_title": "FileOps 文件操作工具",
-        "subtitle": "支持按大小拆分/文档拆分（标题分段 + 图片文字提取）",
+        "subtitle": "支持复制/移动/重命名/删除/按大小拆分/文档拆分/文档一键排版",
         "group_basic": "基础配置",
         "label_operation": "操作类型",
         "label_language": "语言",
@@ -64,6 +65,13 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "label_doc_mode": "标题拆分规则",
         "label_import_format": "导入格式",
         "label_export_format": "导出格式",
+        "label_template": "排版模板",
+        "button_import_template": "导入模板",
+        "button_refresh_templates": "刷新模板库",
+        "template_none": "（暂无模板，请先导入）",
+        "overwrite_never": "遇到同名跳过",
+        "overwrite_always": "覆盖已有文件",
+        "overwrite_rename": "自动重命名",
         "import_format_auto": "自动（支持全部）",
         "import_format_docx": "仅 DOCX",
         "import_format_markdown": "仅 Markdown",
@@ -92,6 +100,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "dialog_select_report_file": "选择报告文件",
         "dialog_select_file": "选择文件",
         "dialog_select_folder": "选择文件夹",
+        "dialog_select_template_file": "选择模板文件",
+        "dialog_template_filter": "Word Template (*.docx);;All Files (*.*)",
         "dialog_json_filter": "JSON 文件 (*.json);;全部文件 (*.*)",
         "dialog_param_error_title": "参数错误",
         "dialog_confirm_delete_title": "确认永久删除",
@@ -102,6 +112,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "error_no_sources": "请先添加至少一个源文件或目录。",
         "error_missing_destination": "该操作需要指定输出目录/目标路径。",
         "error_missing_pattern": "请填写重命名模板。",
+        "error_missing_template": "请先导入并选择一个排版模板。",
+        "error_word_format_source": "一键排版仅支持 DOCX：{name}",
         "error_source_format_mismatch": "源文件格式与“导入格式”设置不匹配：{name}",
         "log_start_execution": "开始执行：{operation}",
         "op_copy": "复制",
@@ -110,6 +122,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "op_delete": "删除",
         "op_split": "按大小拆分",
         "op_doc_split": "文档拆分",
+        "op_word_format": "文档一键排版",
         "doc_mode_h1": "按一级标题",
         "doc_mode_h2": "按二级标题",
         "doc_mode_h1_h2": "按一级+二级标题",
@@ -131,7 +144,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "en": {
         "window_title": "FileOps File Operations Tool",
-        "subtitle": "Supports split-by-size/document split (heading split + OCR)",
+        "subtitle": "Supports copy/move/rename/delete/split/document split/word format",
         "group_basic": "Basic Settings",
         "label_operation": "Operation",
         "label_language": "Language",
@@ -154,6 +167,13 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "label_doc_mode": "Heading Split Rule",
         "label_import_format": "Input Format",
         "label_export_format": "Output Format",
+        "label_template": "Template",
+        "button_import_template": "Import Template",
+        "button_refresh_templates": "Refresh Library",
+        "template_none": "(No templates yet, import first)",
+        "overwrite_never": "Skip if exists",
+        "overwrite_always": "Overwrite existing",
+        "overwrite_rename": "Auto rename",
         "import_format_auto": "Auto (all supported)",
         "import_format_docx": "DOCX only",
         "import_format_markdown": "Markdown only",
@@ -182,6 +202,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "dialog_select_report_file": "Select Report File",
         "dialog_select_file": "Select File",
         "dialog_select_folder": "Select Folder",
+        "dialog_select_template_file": "Select Template File",
+        "dialog_template_filter": "Word Template (*.docx);;All Files (*.*)",
         "dialog_json_filter": "JSON Files (*.json);;All Files (*.*)",
         "dialog_param_error_title": "Parameter Error",
         "dialog_confirm_delete_title": "Confirm Permanent Delete",
@@ -192,6 +214,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "error_no_sources": "Add at least one source file or folder first.",
         "error_missing_destination": "This operation requires an output directory or target path.",
         "error_missing_pattern": "Please provide a rename pattern.",
+        "error_missing_template": "Please import and select a template first.",
+        "error_word_format_source": "Word formatting supports DOCX only: {name}",
         "error_source_format_mismatch": "Source format does not match import format setting: {name}",
         "log_start_execution": "Start operation: {operation}",
         "op_copy": "Copy",
@@ -200,6 +224,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "op_delete": "Delete",
         "op_split": "Split by Size",
         "op_doc_split": "Document Split",
+        "op_word_format": "Word Format",
         "doc_mode_h1": "By H1",
         "doc_mode_h2": "By H2",
         "doc_mode_h1_h2": "By H1 + H2",
@@ -222,8 +247,9 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 }
 
 LANGUAGE_OPTIONS: list[tuple[str, str]] = [("zh", "中文"), ("en", "English")]
-OPERATION_VALUES: list[str] = ["split", "doc_split"]
+OPERATION_VALUES: list[str] = ["copy", "move", "rename", "delete", "split", "doc_split", "word_format"]
 DOC_MODE_VALUES: list[str] = ["h1", "h2", "h1_h2"]
+OVERWRITE_VALUES: list[str] = ["never", "always", "rename"]
 IMPORT_FORMAT_VALUES: list[str] = ["auto", "docx", "markdown", "txt", "pdf"]
 EXPORT_FORMAT_VALUES: list[str] = ["auto", "docx", "md", "txt", "pdf"]
 
@@ -356,6 +382,15 @@ class OperationWorker(QThread):
                 output_format=str(self.params.get("output_format", "auto")),
             )
 
+        if operation == "word_format":
+            return format_word_documents(
+                sources=[source],
+                destination=Path(self.params["destination"]),
+                workspace=workspace,
+                dry_run=dry_run,
+                template_path=Path(self.params["template_path"]),
+            )
+
         return delete_items(
             sources=[source],
             workspace=workspace,
@@ -374,6 +409,7 @@ class FileOpsWindow(QMainWindow):
         self.language = "zh"
         self.operation_values = OPERATION_VALUES[:]
         self.doc_mode_values = DOC_MODE_VALUES[:]
+        self.overwrite_values = OVERWRITE_VALUES[:]
         self.import_format_values = IMPORT_FORMAT_VALUES[:]
         self.export_format_values = EXPORT_FORMAT_VALUES[:]
 
@@ -389,22 +425,46 @@ class FileOpsWindow(QMainWindow):
     def _build_ui(self) -> None:
         central = QWidget(self)
         self.setCentralWidget(central)
-        root_layout = QVBoxLayout(central)
-        root_layout.setContentsMargins(12, 12, 12, 12)
-        root_layout.setSpacing(10)
 
-        header = QFrame()
-        header_layout = QVBoxLayout(header)
-        header_layout.setContentsMargins(0, 0, 0, 0)
-        top_row = QHBoxLayout()
-        top_row.setContentsMargins(0, 0, 0, 0)
-        top_row.setSpacing(8)
+        root_layout = QHBoxLayout(central)
+        root_layout.setContentsMargins(14, 14, 14, 14)
+        root_layout.setSpacing(14)
+
+        self.left_panel = QWidget()
+        self.left_panel.setObjectName("SidePanel")
+        self.left_panel.setMinimumWidth(360)
+        self.left_panel.setMaximumWidth(440)
+        left_layout = QVBoxLayout(self.left_panel)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setSpacing(12)
+
+        self.brand_card = QFrame()
+        self.brand_card.setObjectName("BrandCard")
+        brand_layout = QVBoxLayout(self.brand_card)
+        brand_layout.setContentsMargins(16, 14, 16, 14)
+        brand_layout.setSpacing(10)
+
+        brand_top = QHBoxLayout()
+        brand_top.setContentsMargins(0, 0, 0, 0)
+        brand_top.setSpacing(10)
+
+        self.logo_label = QLabel("F")
+        self.logo_label.setObjectName("logoMark")
+        brand_top.addWidget(self.logo_label, alignment=Qt.AlignTop)
+
+        brand_text_layout = QVBoxLayout()
+        brand_text_layout.setContentsMargins(0, 0, 0, 0)
+        brand_text_layout.setSpacing(2)
         self.title_label = QLabel("FileOps")
         self.title_label.setObjectName("titleLabel")
-        top_row.addWidget(self.title_label)
-        top_row.addStretch(1)
+        self.subtitle_label = QLabel("")
+        self.subtitle_label.setObjectName("subTitleLabel")
+        brand_text_layout.addWidget(self.title_label)
+        brand_text_layout.addWidget(self.subtitle_label)
+        brand_top.addLayout(brand_text_layout, 1)
 
         self.settings_button = QToolButton()
+        self.settings_button.setObjectName("SettingsButton")
         self.settings_button.setPopupMode(QToolButton.InstantPopup)
         self.settings_menu = QMenu(self.settings_button)
         self.language_menu = self.settings_menu.addMenu("")
@@ -419,58 +479,82 @@ class FileOpsWindow(QMainWindow):
             self.language_actions[code] = action
         self.language_action_group.triggered.connect(self._on_language_action_triggered)
         self.settings_button.setMenu(self.settings_menu)
-        top_row.addWidget(self.settings_button, alignment=Qt.AlignRight)
+        brand_top.addWidget(self.settings_button, alignment=Qt.AlignTop | Qt.AlignRight)
 
-        self.subtitle_label = QLabel("")
-        self.subtitle_label.setObjectName("subTitleLabel")
-        header_layout.addLayout(top_row)
-        header_layout.addWidget(self.subtitle_label)
-        root_layout.addWidget(header)
-
-        self.config_group = QGroupBox("")
-        config_layout = QHBoxLayout(self.config_group)
-        self.operation_label = QLabel("")
-        config_layout.addWidget(self.operation_label)
-        self.operation_combo = QComboBox()
-        self.operation_combo.currentIndexChanged.connect(lambda _idx: self._sync_operation_fields())
-        config_layout.addWidget(self.operation_combo)
-
-        self.workspace_label = QLabel("")
-        config_layout.addWidget(self.workspace_label)
-        self.workspace_edit = QLineEdit(self.default_workspace)
-        config_layout.addWidget(self.workspace_edit, 1)
-        self.browse_workspace_button = QPushButton("")
-        self.browse_workspace_button.clicked.connect(self._select_workspace)
-        config_layout.addWidget(self.browse_workspace_button)
-        root_layout.addWidget(self.config_group)
+        brand_layout.addLayout(brand_top)
+        left_layout.addWidget(self.brand_card)
 
         self.source_group = QGroupBox("")
-        source_layout = QHBoxLayout(self.source_group)
+        self.source_group.setObjectName("GlassCard")
+        source_layout = QVBoxLayout(self.source_group)
+        source_layout.setSpacing(8)
+
         self.source_list = QListWidget()
         source_layout.addWidget(self.source_list, 1)
 
-        source_button_layout = QVBoxLayout()
+        source_actions_row1 = QHBoxLayout()
+        source_actions_row1.setSpacing(8)
         self.add_file_button = QPushButton("")
         self.add_file_button.clicked.connect(self._add_files)
         self.add_folder_button = QPushButton("")
         self.add_folder_button.clicked.connect(self._add_folder)
+        source_actions_row1.addWidget(self.add_file_button)
+        source_actions_row1.addWidget(self.add_folder_button)
+        source_layout.addLayout(source_actions_row1)
+
+        source_actions_row2 = QHBoxLayout()
+        source_actions_row2.setSpacing(8)
         self.remove_button = QPushButton("")
         self.remove_button.clicked.connect(self._remove_selected_sources)
         self.clear_button = QPushButton("")
         self.clear_button.clicked.connect(self._clear_sources)
+        source_actions_row2.addWidget(self.remove_button)
+        source_actions_row2.addWidget(self.clear_button)
+        source_layout.addLayout(source_actions_row2)
 
-        source_button_layout.addWidget(self.add_file_button)
-        source_button_layout.addWidget(self.add_folder_button)
-        source_button_layout.addWidget(self.remove_button)
-        source_button_layout.addWidget(self.clear_button)
-        source_button_layout.addStretch(1)
-        source_layout.addLayout(source_button_layout)
-        root_layout.addWidget(self.source_group)
+        left_layout.addWidget(self.source_group, 1)
+
+        self.config_group = QGroupBox("")
+        self.config_group.setObjectName("GlassCard")
+        config_layout = QVBoxLayout(self.config_group)
+        config_layout.setSpacing(8)
+
+        config_row1 = QHBoxLayout()
+        config_row1.setSpacing(8)
+        self.operation_label = QLabel("")
+        config_row1.addWidget(self.operation_label)
+        self.operation_combo = QComboBox()
+        self.operation_combo.currentIndexChanged.connect(lambda _idx: self._sync_operation_fields())
+        config_row1.addWidget(self.operation_combo, 1)
+        config_layout.addLayout(config_row1)
+
+        config_row2 = QHBoxLayout()
+        config_row2.setSpacing(8)
+        self.workspace_label = QLabel("")
+        config_row2.addWidget(self.workspace_label)
+        self.workspace_edit = QLineEdit(self.default_workspace)
+        config_row2.addWidget(self.workspace_edit, 1)
+        self.browse_workspace_button = QPushButton("")
+        self.browse_workspace_button.clicked.connect(self._select_workspace)
+        config_row2.addWidget(self.browse_workspace_button)
+        config_layout.addLayout(config_row2)
+
+        left_layout.addWidget(self.config_group)
+        root_layout.addWidget(self.left_panel)
+
+        self.main_panel = QWidget()
+        self.main_panel.setObjectName("MainPanel")
+        right_layout = QVBoxLayout(self.main_panel)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        right_layout.setSpacing(12)
 
         self.options_group = QGroupBox("")
+        self.options_group.setObjectName("GlassCard")
         options_layout = QVBoxLayout(self.options_group)
+        options_layout.setSpacing(8)
 
         row1 = QHBoxLayout()
+        row1.setSpacing(8)
         self.destination_label = QLabel("")
         row1.addWidget(self.destination_label)
         self.destination_edit = QLineEdit()
@@ -481,6 +565,12 @@ class FileOpsWindow(QMainWindow):
         options_layout.addLayout(row1)
 
         row2 = QHBoxLayout()
+        row2.setSpacing(8)
+        self.overwrite_label = QLabel("")
+        row2.addWidget(self.overwrite_label)
+        self.overwrite_combo = QComboBox()
+        row2.addWidget(self.overwrite_combo)
+
         self.rename_pattern_label = QLabel("")
         row2.addWidget(self.rename_pattern_label)
         self.rename_pattern_edit = QLineEdit("{stem}_{index}{ext}")
@@ -496,13 +586,13 @@ class FileOpsWindow(QMainWindow):
         options_layout.addLayout(row2)
 
         row3 = QHBoxLayout()
+        row3.setSpacing(12)
         self.trash_radio = QRadioButton("")
         self.hard_delete_radio = QRadioButton("")
         self.trash_radio.setChecked(True)
         row3.addWidget(self.trash_radio)
         row3.addWidget(self.hard_delete_radio)
 
-        row3.addSpacing(20)
         self.split_size_label = QLabel("")
         row3.addWidget(self.split_size_label)
         self.split_size_spin = QDoubleSpinBox()
@@ -512,7 +602,6 @@ class FileOpsWindow(QMainWindow):
         self.split_size_spin.setValue(20.0)
         row3.addWidget(self.split_size_spin)
 
-        row3.addSpacing(20)
         self.doc_mode_label = QLabel("")
         row3.addWidget(self.doc_mode_label)
         self.doc_mode_combo = QComboBox()
@@ -525,12 +614,12 @@ class FileOpsWindow(QMainWindow):
         options_layout.addLayout(row3)
 
         row4 = QHBoxLayout()
+        row4.setSpacing(8)
         self.import_format_label = QLabel("")
         row4.addWidget(self.import_format_label)
         self.import_format_combo = QComboBox()
         row4.addWidget(self.import_format_combo)
 
-        row4.addSpacing(20)
         self.export_format_label = QLabel("")
         row4.addWidget(self.export_format_label)
         self.export_format_combo = QComboBox()
@@ -538,12 +627,28 @@ class FileOpsWindow(QMainWindow):
         row4.addStretch(1)
         options_layout.addLayout(row4)
 
-        root_layout.addWidget(self.options_group)
+        row5 = QHBoxLayout()
+        row5.setSpacing(8)
+        self.template_label = QLabel("")
+        row5.addWidget(self.template_label)
+        self.template_combo = QComboBox()
+        row5.addWidget(self.template_combo, 1)
+        self.import_template_button = QPushButton("")
+        self.import_template_button.clicked.connect(self._import_template_file)
+        row5.addWidget(self.import_template_button)
+        self.refresh_template_button = QPushButton("")
+        self.refresh_template_button.clicked.connect(self._reload_template_combo)
+        row5.addWidget(self.refresh_template_button)
+        options_layout.addLayout(row5)
+
+        right_layout.addWidget(self.options_group)
 
         self.run_group = QGroupBox("")
+        self.run_group.setObjectName("GlassCard")
         run_layout = QVBoxLayout(self.run_group)
 
         run_row = QHBoxLayout()
+        run_row.setSpacing(8)
         self.dry_run_check = QCheckBox("")
         run_row.addWidget(self.dry_run_check)
         self.report_label = QLabel("")
@@ -553,11 +658,12 @@ class FileOpsWindow(QMainWindow):
         self.save_report_button = QPushButton("")
         self.save_report_button.clicked.connect(self._select_report_file)
         run_row.addWidget(self.save_report_button)
+        run_layout.addLayout(run_row)
 
         self.run_button = QPushButton("")
+        self.run_button.setObjectName("PrimaryAction")
         self.run_button.clicked.connect(self._execute_operation)
-        run_row.addWidget(self.run_button)
-        run_layout.addLayout(run_row)
+        run_layout.addWidget(self.run_button)
 
         self.progress_bar = QProgressBar()
         self.progress_bar.setRange(0, 100)
@@ -566,92 +672,165 @@ class FileOpsWindow(QMainWindow):
 
         self.progress_label = QLabel("")
         run_layout.addWidget(self.progress_label)
-        root_layout.addWidget(self.run_group)
+        right_layout.addWidget(self.run_group)
 
         self.log_group = QGroupBox("")
+        self.log_group.setObjectName("GlassCard")
         log_layout = QVBoxLayout(self.log_group)
         self.log_text = QPlainTextEdit()
         self.log_text.setReadOnly(True)
         log_layout.addWidget(self.log_text)
-        root_layout.addWidget(self.log_group, 1)
+        right_layout.addWidget(self.log_group, 1)
 
         self.status_label = QLabel("")
-        root_layout.addWidget(self.status_label)
+        right_layout.addWidget(self.status_label)
+
+        root_layout.addWidget(self.main_panel, 1)
 
     def _apply_styles(self) -> None:
         self.setStyleSheet(
             """
             QWidget {
-                font-family: 'Microsoft YaHei UI';
-                font-size: 10pt;
+                font-family: 'Segoe UI Variable Text', 'Microsoft YaHei UI';
+                font-size: 10.5pt;
+                color: #0f172a;
             }
             QMainWindow {
-                background: #f3f6fb;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 #eef4ff,
+                    stop:0.55 #f7f8ff,
+                    stop:1 #f4f1ff);
             }
-            QGroupBox {
-                border: 1px solid #dbe2ef;
-                border-radius: 8px;
-                margin-top: 10px;
-                background: #ffffff;
-                font-weight: 600;
-                color: #1e293b;
-                padding-top: 8px;
+            QWidget#SidePanel, QWidget#MainPanel {
+                background: transparent;
             }
-            QGroupBox::title {
+            QFrame#BrandCard {
+                border: 1px solid #d7e2f3;
+                border-radius: 18px;
+                background: rgba(255, 255, 255, 0.93);
+            }
+            #logoMark {
+                font-size: 21px;
+                font-weight: 800;
+                color: #1d4ed8;
+                border: 1px solid #c3d5f6;
+                border-radius: 16px;
+                background: #ecf3ff;
+                min-width: 32px;
+                min-height: 32px;
+                padding: 2px 0 0 0;
+                qproperty-alignment: AlignCenter;
+            }
+            #titleLabel {
+                font-size: 26px;
+                font-weight: 800;
+                color: #07152f;
+            }
+            #subTitleLabel {
+                color: #31476f;
+                font-size: 11pt;
+            }
+            QGroupBox#GlassCard {
+                border: 1px solid #d7e2f3;
+                border-radius: 16px;
+                margin-top: 12px;
+                background: rgba(255, 255, 255, 0.95);
+                font-weight: 700;
+                padding-top: 10px;
+            }
+            QGroupBox#GlassCard::title {
                 subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 6px;
+                left: 12px;
+                padding: 0 8px;
+                color: #0b1f44;
             }
-            QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QListWidget, QPlainTextEdit {
-                border: 1px solid #cbd5e1;
-                border-radius: 6px;
-                padding: 4px 6px;
+            QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
+                border: 1px solid #c9d6ea;
+                border-radius: 10px;
+                padding: 6px 10px;
+                min-height: 22px;
                 background: #ffffff;
+                selection-background-color: #3b82f6;
+            }
+            QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus {
+                border: 1px solid #4a8efc;
+            }
+            QListWidget, QPlainTextEdit {
+                border: 1px solid #c9d6ea;
+                border-radius: 12px;
+                background: rgba(255, 255, 255, 0.98);
+                padding: 6px;
+            }
+            QListWidget::item {
+                padding: 8px;
+                border-radius: 8px;
+                margin: 2px 0;
+            }
+            QListWidget::item:selected {
+                background: #e8f0ff;
                 color: #0f172a;
             }
             QPushButton {
-                background: #e2e8f0;
-                border: 1px solid #cbd5e1;
-                border-radius: 6px;
-                padding: 6px 12px;
-            }
-            QToolButton {
-                background: #e2e8f0;
-                border: 1px solid #cbd5e1;
-                border-radius: 6px;
-                padding: 6px 12px;
+                background: #e9eef9;
+                border: 1px solid #c8d5ea;
+                border-radius: 10px;
+                padding: 7px 14px;
+                color: #14304f;
             }
             QPushButton:hover {
-                background: #d5deea;
+                background: #dde8fb;
+                border: 1px solid #b8cceb;
             }
-            QToolButton:hover {
-                background: #d5deea;
+            QPushButton:pressed {
+                background: #cfdef7;
             }
-            QPushButton:disabled {
-                color: #94a3b8;
-                background: #f1f5f9;
+            QPushButton#PrimaryAction {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #2f7fff,
+                    stop:1 #4ca5ff);
+                border: 1px solid #2c7cf8;
+                color: #ffffff;
+                font-weight: 700;
+                padding-top: 9px;
+                padding-bottom: 9px;
             }
-            QToolButton:disabled {
-                color: #94a3b8;
-                background: #f1f5f9;
+            QPushButton#PrimaryAction:hover {
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #2a74ea,
+                    stop:1 #4598ef);
+            }
+            QToolButton#SettingsButton {
+                background: #edf2fb;
+                border: 1px solid #cfdbed;
+                border-radius: 10px;
+                padding: 7px 11px;
+                font-weight: 700;
+            }
+            QToolButton#SettingsButton:hover {
+                background: #e2ecfb;
             }
             QProgressBar {
-                border: 1px solid #cbd5e1;
-                border-radius: 6px;
+                border: 1px solid #c8d5ea;
+                border-radius: 11px;
                 text-align: center;
-                background: #e2e8f0;
+                background: #e9effb;
+                min-height: 20px;
+                font-weight: 700;
             }
             QProgressBar::chunk {
-                background: #3b82f6;
-                border-radius: 5px;
+                border-radius: 10px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 #2f7fff,
+                    stop:1 #67c0ff);
             }
-            #titleLabel {
-                font-size: 22px;
-                font-weight: 700;
+            QCheckBox, QRadioButton {
+                spacing: 8px;
+            }
+            QLabel {
                 color: #0f172a;
             }
-            #subTitleLabel {
-                color: #475569;
+            QLabel:disabled, QCheckBox:disabled, QRadioButton:disabled {
+                color: #94a3b8;
             }
             """
         )
@@ -668,7 +847,8 @@ class FileOpsWindow(QMainWindow):
         self.subtitle_label.setText(self._tr("subtitle"))
         self.config_group.setTitle(self._tr("group_basic"))
         self.operation_label.setText(self._tr("label_operation"))
-        self.settings_button.setText(self._tr("button_settings"))
+        self.settings_button.setText("\u2699")
+        self.settings_button.setToolTip(self._tr("button_settings"))
         self.language_menu.setTitle(self._tr("label_language"))
         for code, action in self.language_actions.items():
             action.setChecked(code == self.language)
@@ -682,6 +862,7 @@ class FileOpsWindow(QMainWindow):
         self.options_group.setTitle(self._tr("group_options"))
         self.destination_label.setText(self._tr("label_destination"))
         self.browse_dest_button.setText(self._tr("button_browse"))
+        self.overwrite_label.setText(self._tr("label_overwrite"))
         self.rename_pattern_label.setText(self._tr("label_rename_pattern"))
         self.start_index_label.setText(self._tr("label_start_index"))
         self.trash_radio.setText(self._tr("radio_trash"))
@@ -690,6 +871,9 @@ class FileOpsWindow(QMainWindow):
         self.doc_mode_label.setText(self._tr("label_doc_mode"))
         self.import_format_label.setText(self._tr("label_import_format"))
         self.export_format_label.setText(self._tr("label_export_format"))
+        self.template_label.setText(self._tr("label_template"))
+        self.import_template_button.setText(self._tr("button_import_template"))
+        self.refresh_template_button.setText(self._tr("button_refresh_templates"))
         self.include_ocr_check.setText(self._tr("check_include_ocr"))
         self.run_group.setTitle(self._tr("group_run"))
         self.dry_run_check.setText(self._tr("check_dry_run"))
@@ -700,8 +884,10 @@ class FileOpsWindow(QMainWindow):
 
         self._rebuild_operation_combo()
         self._rebuild_doc_mode_combo()
+        self._rebuild_overwrite_combo()
         self._rebuild_import_format_combo()
         self._rebuild_export_format_combo()
+        self._reload_template_combo()
         self._sync_operation_fields()
 
         if initial:
@@ -736,6 +922,16 @@ class FileOpsWindow(QMainWindow):
         target_index = self.doc_mode_combo.findData(current_value)
         self.doc_mode_combo.setCurrentIndex(target_index if target_index >= 0 else 0)
         self.doc_mode_combo.blockSignals(False)
+
+    def _rebuild_overwrite_combo(self) -> None:
+        current_value = str(self.overwrite_combo.currentData() or "never") if self.overwrite_combo.count() > 0 else "never"
+        self.overwrite_combo.blockSignals(True)
+        self.overwrite_combo.clear()
+        for value in self.overwrite_values:
+            self.overwrite_combo.addItem(self._tr(f"overwrite_{value}"), value)
+        target_index = self.overwrite_combo.findData(current_value)
+        self.overwrite_combo.setCurrentIndex(target_index if target_index >= 0 else 0)
+        self.overwrite_combo.blockSignals(False)
 
     def _rebuild_import_format_combo(self) -> None:
         current_value = str(self.import_format_combo.currentData() or "auto") if self.import_format_combo.count() > 0 else "auto"
@@ -804,22 +1000,27 @@ class FileOpsWindow(QMainWindow):
     def _sync_operation_fields(self) -> None:
         operation = self._current_operation()
 
-        show_destination = operation in {"copy", "move", "split", "doc_split"}
+        show_destination = operation in {"copy", "move", "split", "doc_split", "word_format"}
         show_rename = operation == "rename"
         show_delete = operation == "delete"
         show_split = operation == "split"
+        show_overwrite = operation in {"copy", "move", "rename", "split"}
 
         self._set_widget_enabled(self.destination_edit, show_destination)
+        self._set_widget_enabled(self.browse_dest_button, show_destination)
+        self._set_widget_enabled(self.overwrite_combo, show_overwrite)
         self._set_widget_enabled(self.rename_pattern_edit, show_rename)
         self._set_widget_enabled(self.start_index_spin, show_rename)
         self._set_widget_enabled(self.trash_radio, show_delete)
         self._set_widget_enabled(self.hard_delete_radio, show_delete)
         self._set_widget_enabled(self.split_size_spin, show_split)
-        # Keep document options selectable so users can pre-configure before switching operation.
         self._set_widget_enabled(self.doc_mode_combo, True)
         self._set_widget_enabled(self.import_format_combo, True)
         self._set_widget_enabled(self.export_format_combo, True)
         self._set_widget_enabled(self.include_ocr_check, True)
+        self._set_widget_enabled(self.template_combo, True)
+        self._set_widget_enabled(self.import_template_button, True)
+        self._set_widget_enabled(self.refresh_template_button, True)
 
     def _set_running(self, running: bool) -> None:
         self.run_button.setEnabled(not running)
@@ -906,7 +1107,11 @@ class FileOpsWindow(QMainWindow):
 
     def _add_files(self) -> None:
         operation = self._current_operation()
-        file_filter = self._doc_input_file_filter() if operation == "doc_split" else ""
+        file_filter = ""
+        if operation == "doc_split":
+            file_filter = self._doc_input_file_filter()
+        elif operation == "word_format":
+            file_filter = "Word Document (*.docx);;All Files (*.*)"
         files, _ = QFileDialog.getOpenFileNames(
             self,
             self._tr("dialog_select_file"),
@@ -938,6 +1143,43 @@ class FileOpsWindow(QMainWindow):
     def _clear_sources(self) -> None:
         self.source_list.clear()
 
+
+    def _reload_template_combo(self) -> None:
+        current_value = str(self.template_combo.currentData() or "")
+        templates = list_word_templates()
+
+        self.template_combo.blockSignals(True)
+        self.template_combo.clear()
+        if templates:
+            for item in templates:
+                self.template_combo.addItem(item.name, str(item))
+            target_index = self.template_combo.findData(current_value)
+            self.template_combo.setCurrentIndex(target_index if target_index >= 0 else 0)
+        else:
+            self.template_combo.addItem(self._tr("template_none"), "")
+            self.template_combo.setCurrentIndex(0)
+        self.template_combo.blockSignals(False)
+
+    def _import_template_file(self) -> None:
+        selected, _ = QFileDialog.getOpenFileName(
+            self,
+            self._tr("dialog_select_template_file"),
+            self.workspace_edit.text().strip() or str(Path.cwd()),
+            self._tr("dialog_template_filter"),
+        )
+        if not selected:
+            return
+
+        try:
+            imported = import_word_template(Path(selected))
+            self._reload_template_combo()
+            target_index = self.template_combo.findData(str(imported))
+            if target_index >= 0:
+                self.template_combo.setCurrentIndex(target_index)
+            self._append_log(f"Template imported: {imported}")
+        except Exception as exc:  # noqa: BLE001
+            QMessageBox.critical(self, self._tr("dialog_param_error_title"), str(exc))
+
     def _collect_parameters(self) -> dict[str, object]:
         operation = self._current_operation()
         workspace = Path(self.workspace_edit.text().strip() or ".").resolve(strict=False)
@@ -953,11 +1195,11 @@ class FileOpsWindow(QMainWindow):
             "workspace": workspace,
             "sources": sources,
             "dry_run": self.dry_run_check.isChecked(),
-            "overwrite": "never",
+            "overwrite": str(self.overwrite_combo.currentData() or "never"),
             "report_path": self.report_edit.text().strip(),
         }
 
-        if operation in {"copy", "move", "split", "doc_split"}:
+        if operation in {"copy", "move", "split", "doc_split", "word_format"}:
             dest_text = self.destination_edit.text().strip()
             if not dest_text:
                 raise ValueError(self._tr("error_missing_destination"))
@@ -985,6 +1227,15 @@ class FileOpsWindow(QMainWindow):
             for source in sources:
                 if not self._source_matches_doc_input_format(source, str(params["input_format"])):
                     raise ValueError(self._tr("error_source_format_mismatch", name=source.name))
+
+        if operation == "word_format":
+            selected_template = self.template_combo.currentData()
+            if not selected_template:
+                raise ValueError(self._tr("error_missing_template"))
+            params["template_path"] = Path(str(selected_template)).resolve(strict=False)
+            for source in sources:
+                if source.suffix.lower() != ".docx":
+                    raise ValueError(self._tr("error_word_format_source", name=source.name))
 
         candidate_paths = list(sources)
         if "destination" in params:
@@ -1049,6 +1300,8 @@ def launch_gui() -> None:
 
 if __name__ == "__main__":
     launch_gui()
+
+
 
 
 
