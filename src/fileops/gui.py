@@ -35,14 +35,14 @@ from PySide6.QtWidgets import (
 from .document_split import split_documents_by_structure
 from .models import OperationResult, RunReport
 from .word_template import format_word_documents, import_word_template, list_word_templates
-from .operations import CommonOptions, copy_items, delete_items, move_items, rename_items, split_items
+from .operations import CommonOptions, split_items
 from .reporting import write_report
 
 
 TRANSLATIONS: dict[str, dict[str, str]] = {
     "zh": {
         "window_title": "FileOps 文件操作工具",
-        "subtitle": "支持复制/移动/重命名/删除/按大小拆分/文档拆分/文档一键排版",
+        "subtitle": "支持按大小拆分/文档拆分/文档一键排版",
         "group_basic": "基础配置",
         "label_operation": "操作类型",
         "label_language": "语言",
@@ -144,7 +144,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "en": {
         "window_title": "FileOps File Operations Tool",
-        "subtitle": "Supports copy/move/rename/delete/split/document split/word format",
+        "subtitle": "Supports split/document split/word format",
         "group_basic": "Basic Settings",
         "label_operation": "Operation",
         "label_language": "Language",
@@ -247,7 +247,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 }
 
 LANGUAGE_OPTIONS: list[tuple[str, str]] = [("zh", "中文"), ("en", "English")]
-OPERATION_VALUES: list[str] = ["copy", "move", "rename", "delete", "split", "doc_split", "word_format"]
+OPERATION_VALUES: list[str] = ["split", "doc_split", "word_format"]
 DOC_MODE_VALUES: list[str] = ["h1", "h2", "h1_h2"]
 OVERWRITE_VALUES: list[str] = ["never", "always", "rename"]
 IMPORT_FORMAT_VALUES: list[str] = ["auto", "docx", "markdown", "txt", "pdf"]
@@ -299,8 +299,7 @@ class OperationWorker(QThread):
                 self.progress_changed.emit(idx - 1, total, self._tr("worker_processing", name=source_path.name))
                 self.log_message.emit(self._tr("worker_start_item", idx=idx, total=total, source=source_path))
 
-                rename_index = int(self.params.get("start_index", 1)) + idx - 1
-                results = self._run_single(operation, source_path, rename_index)
+                results = self._run_single(operation, source_path)
                 for item in results:
                     report.add(item)
                     op_label = self.operation_value_to_label.get(item.operation, item.operation)
@@ -351,23 +350,16 @@ class OperationWorker(QThread):
             self.log_message.emit(self._tr("worker_exception", error=exc))
             self.finished_status.emit(self._tr("status_failed"), True, str(exc))
 
-    def _run_single(self, operation: str, source: Path, rename_index: int) -> list[OperationResult]:
+    def _run_single(self, operation: str, source: Path) -> list[OperationResult]:
         workspace = Path(self.params["workspace"])
         dry_run = bool(self.params["dry_run"])
 
-        if operation in {"copy", "move", "rename", "split"}:
+        if operation == "split":
             common = CommonOptions(
                 workspace=workspace,
                 dry_run=dry_run,
                 overwrite=str(self.params["overwrite"]),
             )
-
-            if operation == "copy":
-                return copy_items([source], Path(self.params["destination"]), common)
-            if operation == "move":
-                return move_items([source], Path(self.params["destination"]), common)
-            if operation == "rename":
-                return rename_items([source], str(self.params["pattern"]), rename_index, common)
             return split_items([source], Path(self.params["destination"]), float(self.params["split_size_mb"]), common)
 
         if operation == "doc_split":
@@ -391,12 +383,7 @@ class OperationWorker(QThread):
                 template_path=Path(self.params["template_path"]),
             )
 
-        return delete_items(
-            sources=[source],
-            workspace=workspace,
-            dry_run=dry_run,
-            use_trash=bool(self.params["use_trash"]),
-        )
+        raise ValueError(f"Unsupported operation: {operation}")
 
 
 class FileOpsWindow(QMainWindow):
@@ -1000,27 +987,29 @@ class FileOpsWindow(QMainWindow):
     def _sync_operation_fields(self) -> None:
         operation = self._current_operation()
 
-        show_destination = operation in {"copy", "move", "split", "doc_split", "word_format"}
-        show_rename = operation == "rename"
-        show_delete = operation == "delete"
+        show_destination = operation in {"split", "doc_split", "word_format"}
         show_split = operation == "split"
-        show_overwrite = operation in {"copy", "move", "rename", "split"}
+        show_doc_options = operation == "doc_split"
+        show_template_options = operation == "word_format"
 
         self._set_widget_enabled(self.destination_edit, show_destination)
         self._set_widget_enabled(self.browse_dest_button, show_destination)
-        self._set_widget_enabled(self.overwrite_combo, show_overwrite)
-        self._set_widget_enabled(self.rename_pattern_edit, show_rename)
-        self._set_widget_enabled(self.start_index_spin, show_rename)
-        self._set_widget_enabled(self.trash_radio, show_delete)
-        self._set_widget_enabled(self.hard_delete_radio, show_delete)
+        self._set_widget_enabled(self.overwrite_combo, show_split)
         self._set_widget_enabled(self.split_size_spin, show_split)
-        self._set_widget_enabled(self.doc_mode_combo, True)
-        self._set_widget_enabled(self.import_format_combo, True)
-        self._set_widget_enabled(self.export_format_combo, True)
-        self._set_widget_enabled(self.include_ocr_check, True)
-        self._set_widget_enabled(self.template_combo, True)
-        self._set_widget_enabled(self.import_template_button, True)
-        self._set_widget_enabled(self.refresh_template_button, True)
+        self._set_widget_enabled(self.doc_mode_combo, show_doc_options)
+        self._set_widget_enabled(self.import_format_combo, show_doc_options)
+        self._set_widget_enabled(self.export_format_combo, show_doc_options)
+        self._set_widget_enabled(self.include_ocr_check, show_doc_options)
+        self._set_widget_enabled(self.template_combo, show_template_options)
+        self._set_widget_enabled(self.import_template_button, show_template_options)
+        self._set_widget_enabled(self.refresh_template_button, show_template_options)
+
+        self.rename_pattern_label.setVisible(False)
+        self.rename_pattern_edit.setVisible(False)
+        self.start_index_label.setVisible(False)
+        self.start_index_spin.setVisible(False)
+        self.trash_radio.setVisible(False)
+        self.hard_delete_radio.setVisible(False)
 
     def _set_running(self, running: bool) -> None:
         self.run_button.setEnabled(not running)
@@ -1199,21 +1188,11 @@ class FileOpsWindow(QMainWindow):
             "report_path": self.report_edit.text().strip(),
         }
 
-        if operation in {"copy", "move", "split", "doc_split", "word_format"}:
+        if operation in {"split", "doc_split", "word_format"}:
             dest_text = self.destination_edit.text().strip()
             if not dest_text:
                 raise ValueError(self._tr("error_missing_destination"))
             params["destination"] = Path(dest_text).resolve(strict=False)
-
-        if operation == "rename":
-            pattern = self.rename_pattern_edit.text().strip()
-            if not pattern:
-                raise ValueError(self._tr("error_missing_pattern"))
-            params["pattern"] = pattern
-            params["start_index"] = int(self.start_index_spin.value())
-
-        if operation == "delete":
-            params["use_trash"] = self.trash_radio.isChecked()
 
         if operation == "split":
             params["split_size_mb"] = float(self.split_size_spin.value())
@@ -1256,17 +1235,6 @@ class FileOpsWindow(QMainWindow):
         except ValueError as exc:
             QMessageBox.critical(self, self._tr("dialog_param_error_title"), str(exc))
             return
-
-        if self._current_operation() == "delete" and not bool(params["dry_run"]) and not bool(params.get("use_trash", True)):
-            confirmed = QMessageBox.question(
-                self,
-                self._tr("dialog_confirm_delete_title"),
-                self._tr("dialog_confirm_delete_text"),
-                QMessageBox.Yes | QMessageBox.No,
-                QMessageBox.No,
-            )
-            if confirmed != QMessageBox.Yes:
-                return
 
         self._set_running(True)
         self.progress_bar.setValue(0)
