@@ -989,20 +989,20 @@ class FileOpsWindow(QMainWindow):
 
         show_destination = operation in {"split", "doc_split", "word_format"}
         show_split = operation == "split"
-        show_doc_options = operation == "doc_split"
-        show_template_options = operation == "word_format"
 
         self._set_widget_enabled(self.destination_edit, show_destination)
         self._set_widget_enabled(self.browse_dest_button, show_destination)
         self._set_widget_enabled(self.overwrite_combo, show_split)
         self._set_widget_enabled(self.split_size_spin, show_split)
-        self._set_widget_enabled(self.doc_mode_combo, show_doc_options)
-        self._set_widget_enabled(self.import_format_combo, show_doc_options)
-        self._set_widget_enabled(self.export_format_combo, show_doc_options)
-        self._set_widget_enabled(self.include_ocr_check, show_doc_options)
-        self._set_widget_enabled(self.template_combo, show_template_options)
-        self._set_widget_enabled(self.import_template_button, show_template_options)
-        self._set_widget_enabled(self.refresh_template_button, show_template_options)
+
+        # Keep advanced options selectable so users can pre-configure before switching operation.
+        self._set_widget_enabled(self.doc_mode_combo, True)
+        self._set_widget_enabled(self.import_format_combo, True)
+        self._set_widget_enabled(self.export_format_combo, True)
+        self._set_widget_enabled(self.include_ocr_check, True)
+        self._set_widget_enabled(self.template_combo, True)
+        self._set_widget_enabled(self.import_template_button, True)
+        self._set_widget_enabled(self.refresh_template_button, True)
 
         self.rename_pattern_label.setVisible(False)
         self.rename_pattern_edit.setVisible(False)
