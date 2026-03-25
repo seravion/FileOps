@@ -499,8 +499,6 @@ class FileOpsWindow(QMainWindow):
         source_actions_row2.addWidget(self.clear_button)
         source_layout.addLayout(source_actions_row2)
 
-        left_layout.addWidget(self.source_group, 1)
-
         self.config_group = QGroupBox("")
         self.config_group.setObjectName("GlassCard")
         config_layout = QVBoxLayout(self.config_group)
@@ -527,6 +525,7 @@ class FileOpsWindow(QMainWindow):
         config_layout.addLayout(config_row2)
 
         left_layout.addWidget(self.config_group)
+        left_layout.addWidget(self.source_group, 1)
         root_layout.addWidget(self.left_panel)
 
         self.main_panel = QWidget()
@@ -1268,6 +1267,7 @@ def launch_gui() -> None:
 
 if __name__ == "__main__":
     launch_gui()
+
 
 
 
