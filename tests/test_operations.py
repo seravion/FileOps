@@ -3,11 +3,14 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import pytest
+
 from docx import Document
 
 from fileops.document_split import split_documents_by_structure
 from fileops.models import OperationStatus
 from fileops.operations import CommonOptions, copy_items, delete_items, move_items, rename_items, split_items
+import fileops.operations as operations_module
 
 
 def test_copy_dry_run_does_not_modify_fs() -> None:
@@ -83,6 +86,101 @@ def test_split_items_by_size() -> None:
         assert (out_dir / "large.part001.bin").exists()
         assert (out_dir / "large.part002.bin").exists()
         assert (out_dir / "large.part003.bin").exists()
+
+
+def test_split_pdf_by_size_outputs_openable_pdfs() -> None:
+    pypdf = pytest.importorskip("pypdf")
+    PdfReader = pypdf.PdfReader
+    PdfWriter = pypdf.PdfWriter
+
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "paper.pdf"
+
+        writer = PdfWriter()
+        for _ in range(6):
+            writer.add_blank_page(width=595, height=842)
+        with src.open("wb") as stream:
+            writer.write(stream)
+
+        options = CommonOptions(workspace=root, dry_run=False, overwrite="never")
+        out_dir = root / "chunks"
+        results = split_items([src], destination=out_dir, chunk_size_mb=0.0001, options=options)
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.SUCCESS
+
+        parts = sorted(out_dir.glob("paper.part*.pdf"))
+        assert len(parts) >= 2
+
+        total_pages = 0
+        for part in parts:
+            part_reader = PdfReader(str(part))
+            assert len(part_reader.pages) >= 1
+            total_pages += len(part_reader.pages)
+
+        assert total_pages == 6
+
+
+def test_split_docx_by_size_outputs_openable_docx_parts() -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "paper.docx"
+
+        doc = Document()
+        for idx in range(120):
+            doc.add_paragraph(f"Paragraph {idx} - " + ("content " * 20))
+        doc.save(str(src))
+
+        options = CommonOptions(workspace=root, dry_run=False, overwrite="never")
+        out_dir = root / "chunks"
+        chunk_size_mb = max(0.0002, (src.stat().st_size / 2) / (1024 * 1024))
+        results = split_items([src], destination=out_dir, chunk_size_mb=chunk_size_mb, options=options)
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.SUCCESS
+
+        parts = sorted(out_dir.glob("paper.part*.docx"))
+        assert len(parts) >= 2
+
+        total_paragraphs = 0
+        for part in parts:
+            split_doc = Document(str(part))
+            assert len(split_doc.paragraphs) >= 1
+            total_paragraphs += sum(1 for p in split_doc.paragraphs if p.text.strip())
+
+        assert total_paragraphs >= 120
+
+
+
+def test_split_pdf_by_size_uses_source_size_target_when_estimation_is_small(monkeypatch) -> None:
+    pypdf = pytest.importorskip("pypdf")
+    PdfWriter = pypdf.PdfWriter
+
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "paper.pdf"
+
+        writer = PdfWriter()
+        for _ in range(6):
+            writer.add_blank_page(width=595, height=842)
+        with src.open("wb") as stream:
+            writer.write(stream)
+
+        monkeypatch.setattr(operations_module, "_estimate_pdf_size_for_pages", lambda *_args, **_kwargs: 1)
+
+        file_size = src.stat().st_size
+        chunk_size_mb = max(0.000001, (file_size - 1) / (1024 * 1024))
+
+        options = CommonOptions(workspace=root, dry_run=False, overwrite="never")
+        out_dir = root / "chunks2"
+        results = split_items([src], destination=out_dir, chunk_size_mb=chunk_size_mb, options=options)
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.SUCCESS
+
+        parts = sorted(out_dir.glob("paper.part*.pdf"))
+        assert len(parts) == 2
 
 
 def test_doc_split_markdown_by_heading() -> None:

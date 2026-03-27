@@ -6,6 +6,7 @@ import shutil
 from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import datetime
+from io import BytesIO
 from pathlib import Path
 
 from .models import OperationResult, OperationStatus
@@ -15,6 +16,19 @@ try:
     from send2trash import send2trash
 except ImportError:  # pragma: no cover
     send2trash = None
+
+try:
+    from pypdf import PdfReader, PdfWriter
+except ImportError:  # pragma: no cover
+    PdfReader = None
+    PdfWriter = None
+
+try:
+    from docx import Document
+    from docx.oxml.ns import qn
+except ImportError:  # pragma: no cover
+    Document = None
+    qn = None
 
 
 OVERWRITE_POLICIES = {"never", "always", "rename"}
@@ -234,7 +248,21 @@ def split_items(
                 raise IsADirectoryError(f"Split supports files only: {source}")
 
             file_size = source.stat().st_size
-            part_count = max(1, math.ceil(file_size / chunk_size_bytes))
+            desired_parts = max(1, math.ceil(file_size / chunk_size_bytes))
+
+            pdf_groups: list[list[int]] | None = None
+            docx_ranges: list[tuple[int, int]] | None = None
+
+            if _is_pdf_source(source):
+                pdf_reader = _load_pdf_reader(source)
+                pdf_groups = _build_pdf_page_groups(pdf_reader, chunk_size_bytes, desired_parts)
+                part_count = len(pdf_groups)
+            elif _is_docx_source(source):
+                docx_document = _load_docx_document(source)
+                docx_ranges = _build_docx_block_ranges(docx_document, chunk_size_bytes, desired_parts)
+                part_count = len(docx_ranges)
+            else:
+                part_count = desired_parts
 
             target_paths: list[Path] = []
             note_messages: list[str] = []
@@ -261,12 +289,22 @@ def split_items(
                 results.append(_build_result("split", source, destination, OperationStatus.DRY_RUN, message, started, started_at))
                 continue
 
-            with source.open("rb") as reader:
-                for target in target_paths:
+            if pdf_groups is not None:
+                pdf_reader = _load_pdf_reader(source)
+                for target, page_indexes in zip(target_paths, pdf_groups):
                     target.parent.mkdir(parents=True, exist_ok=True)
-                    chunk = reader.read(chunk_size_bytes)
-                    with target.open("wb") as writer:
-                        writer.write(chunk)
+                    _write_pdf_part(pdf_reader, page_indexes, target)
+            elif docx_ranges is not None:
+                for target, (start_block, end_block) in zip(target_paths, docx_ranges):
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    _write_docx_part(source, start_block, end_block, target)
+            else:
+                with source.open("rb") as reader:
+                    for target in target_paths:
+                        target.parent.mkdir(parents=True, exist_ok=True)
+                        chunk = reader.read(chunk_size_bytes)
+                        with target.open("wb") as writer:
+                            writer.write(chunk)
 
             message = f"Split completed: {len(target_paths)} part(s) in {destination}"
             if note_messages:
@@ -277,6 +315,174 @@ def split_items(
             results.append(_build_result("split", source, None, OperationStatus.FAILED, str(exc), started, started_at))
 
     return results
+
+
+def _is_pdf_source(source: Path) -> bool:
+    return source.suffix.lower() == ".pdf"
+
+
+def _is_docx_source(source: Path) -> bool:
+    return source.suffix.lower() == ".docx"
+
+
+def _load_pdf_reader(source: Path):
+    if PdfReader is None:
+        raise RuntimeError("pypdf is not installed. Please install dependencies first.")
+
+    try:
+        reader = PdfReader(str(source))
+    except Exception as exc:  # noqa: BLE001
+        raise ValueError(f".pdf parse failed: {exc}") from exc
+
+    if getattr(reader, "is_encrypted", False):
+        try:
+            decrypted = reader.decrypt("")
+        except Exception as exc:  # noqa: BLE001
+            raise ValueError(f".pdf parse failed: {exc}") from exc
+        if decrypted == 0:
+            raise ValueError(".pdf parse failed: encrypted PDF requires password")
+
+    return reader
+
+
+def _load_docx_document(source: Path):
+    if Document is None:
+        raise RuntimeError("python-docx is not installed. Please install dependencies first.")
+
+    try:
+        return Document(str(source))
+    except Exception as exc:  # noqa: BLE001
+        raise ValueError(f".docx parse failed: {exc}") from exc
+
+
+def _build_pdf_page_groups(pdf_reader, chunk_size_bytes: int, desired_parts: int) -> list[list[int]]:
+    total_pages = len(pdf_reader.pages)
+    if total_pages == 0:
+        return [[]]
+
+    target_parts = max(1, min(total_pages, desired_parts))
+
+    groups: list[list[int]] = []
+    current: list[int] = []
+
+    for page_index in range(total_pages):
+        candidate_pages = current + [page_index]
+        candidate_size = _estimate_pdf_size_for_pages(pdf_reader, candidate_pages)
+
+        if current and candidate_size > chunk_size_bytes:
+            groups.append(current)
+            current = [page_index]
+        else:
+            current = candidate_pages
+
+    if current:
+        groups.append(current)
+
+    return _rebalance_groups_to_target(groups, target_parts)
+
+
+def _iter_docx_body_blocks(doc) -> list:
+    if qn is None:
+        return []
+    body = doc.element.body
+    return [child for child in body.iterchildren() if child.tag in {qn("w:p"), qn("w:tbl")}]
+
+
+def _build_docx_block_ranges(doc, chunk_size_bytes: int, desired_parts: int) -> list[tuple[int, int]]:
+    blocks = _iter_docx_body_blocks(doc)
+    total_blocks = len(blocks)
+    if total_blocks == 0:
+        return [(0, 0)]
+
+    target_parts = max(1, min(total_blocks, desired_parts))
+
+    groups: list[list[int]] = []
+    current: list[int] = []
+    current_size = 0
+
+    for block_index, block in enumerate(blocks):
+        block_size = max(1, len(block.xml.encode("utf-8")))
+        if current and current_size + block_size > chunk_size_bytes:
+            groups.append(current)
+            current = [block_index]
+            current_size = block_size
+        else:
+            current.append(block_index)
+            current_size += block_size
+
+    if current:
+        groups.append(current)
+
+    balanced = _rebalance_groups_to_target(groups, target_parts)
+    return [(group[0], group[-1] + 1) for group in balanced]
+
+
+def _rebalance_groups_to_target(groups: list[list[int]], target_parts: int) -> list[list[int]]:
+    normalized = [group[:] for group in groups if group]
+    if not normalized:
+        return [[]]
+
+    while len(normalized) < target_parts:
+        split_index = -1
+        split_length = 1
+        for idx, group in enumerate(normalized):
+            if len(group) > split_length:
+                split_index = idx
+                split_length = len(group)
+
+        if split_index < 0:
+            break
+
+        group = normalized.pop(split_index)
+        mid = len(group) // 2
+        normalized.insert(split_index, group[:mid])
+        normalized.insert(split_index + 1, group[mid:])
+
+    return normalized
+
+
+def _estimate_pdf_size_for_pages(pdf_reader, page_indexes: Sequence[int]) -> int:
+    if PdfWriter is None:
+        raise RuntimeError("pypdf is not installed. Please install dependencies first.")
+
+    writer = PdfWriter()
+    for page_index in page_indexes:
+        writer.add_page(pdf_reader.pages[page_index])
+
+    buffer = BytesIO()
+    writer.write(buffer)
+    return buffer.tell()
+
+
+def _write_pdf_part(pdf_reader, page_indexes: Sequence[int], target: Path) -> None:
+    if PdfWriter is None:
+        raise RuntimeError("pypdf is not installed. Please install dependencies first.")
+
+    writer = PdfWriter()
+    for page_index in page_indexes:
+        writer.add_page(pdf_reader.pages[page_index])
+
+    with target.open("wb") as stream:
+        writer.write(stream)
+
+
+def _write_docx_part(source: Path, start_block: int, end_block: int, target: Path) -> None:
+    shutil.copy2(source, target)
+
+    doc = _load_docx_document(target)
+    blocks = _iter_docx_body_blocks(doc)
+
+    for idx, block in enumerate(blocks):
+        if start_block <= idx < end_block:
+            continue
+        block.getparent().remove(block)
+
+    if not _iter_docx_body_blocks(doc):
+        doc.add_paragraph("")
+
+    doc.save(str(target))
+
+
 
 
 def _run_transfer(
