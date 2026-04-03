@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal, Qt
-from PySide6.QtGui import QAction, QActionGroup
+from PySide6.QtGui import QAction, QActionGroup, QIcon
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -1283,9 +1283,28 @@ class FileOpsWindow(QMainWindow):
         self.worker.start()
 
 
+def _resolve_app_icon_path() -> Path | None:
+    bundled_base = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[2]))
+    candidates = [
+        bundled_base / "assets" / "fileops.ico",
+        Path(__file__).resolve().parents[2] / "assets" / "fileops.ico",
+    ]
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return None
+
+
 def launch_gui() -> None:
     app = QApplication.instance() or QApplication(sys.argv)
+    icon_path = _resolve_app_icon_path()
+    if icon_path is not None:
+        icon = QIcon(str(icon_path))
+        app.setWindowIcon(icon)
     window = FileOpsWindow()
+    if icon_path is not None:
+        window.setWindowIcon(QIcon(str(icon_path)))
     window.show()
     app.exec()
 

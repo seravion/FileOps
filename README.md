@@ -67,4 +67,4 @@ powershell -ExecutionPolicy Bypass -File scripts/build_installer.ps1
 - 对加密 PDF（含权限保护），请先去除密码/限制后再拆分。
 
 ## 打包指令
-$env:HOME=(Get-Location).Path; $env:USERPROFILE=(Get-Location).Path; $env:HOMEDRIVE='C:'; $env:HOMEPATH='\Users\Hushe\Desktop\我的项目\FileOps-main'; .\.venv\Scripts\python.exe -m PyInstaller --clean --noconfirm --windowed --onefile --name fileops --specpath build --paths src scripts/entrypoint.py
+$env:HOME=(Get-Location).Path; $env:USERPROFILE=(Get-Location).Path; .\.venv\Scripts\python.exe -m PyInstaller --clean --noconfirm --windowed --onefile --name fileops --icon assets/fileops.ico --add-data "assets/fileops.ico;assets" --specpath build --paths src scripts/entrypoint.py

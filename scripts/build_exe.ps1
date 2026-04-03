@@ -127,6 +127,8 @@ else {
 }
 
 Invoke-Checked -Command $venvPython -Arguments @("-m", "pip", "install", "--no-build-isolation", "--no-deps", ".")
-Invoke-Checked -Command ".\.venv\Scripts\pyinstaller.exe" -Arguments @("--clean", "--noconfirm", "--windowed", "--onefile", "--name", "fileops", "--specpath", "build", "--paths", "src", "scripts/entrypoint.py")
+
+$iconPath = (Resolve-Path "assets\fileops.ico").Path
+Invoke-Checked -Command ".\.venv\Scripts\pyinstaller.exe" -Arguments @("--clean", "--noconfirm", "--windowed", "--onefile", "--name", "fileops", "--icon", $iconPath, "--add-data", "$iconPath;assets", "--specpath", "build", "--paths", "src", "scripts/entrypoint.py")
 
 Write-Host "Build completed: dist\\fileops.exe"
