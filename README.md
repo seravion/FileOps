@@ -1,62 +1,129 @@
-﻿# FileOps
+# FileOps
 
-FileOps 是一个桌面文件处理工具，支持图形界面点击操作。
+FileOps 是一个面向 Windows 的文档处理工具，提供 GUI 一键操作与 CLI 批处理两种模式。
 
-## 功能
-- 复制、移动、重命名、删除
-- 按大小拆分文件（MB）
-- 文档拆分（按一级标题、二级标题、一级+二级标题，分片边界隔离，避免相邻章节内容混入）
-- 可选提取图片文字（OCR）
-- 文档一键排版（严格按模板样式套用：标题、正文、目录、表格）
-- 文档模板对照（检查并报告缩进、行间距、公式编号、图编号、参考文献格式差异，并生成调整稿）
-- 预演模式（Dry Run）
-- JSON 报告导出
-- 实时进度条与逐条执行日志
+当前版本重点解决三类场景：
+- 文档按结构拆分（避免章节内容串段）
+- 文档严格套用模板排版
+- 文档与模板格式对照并输出可执行整改报告
 
-## 图形界面说明
-- 操作类型选择：在“操作类型”下拉中选择对应功能
-- 文档拆分：
-  - 选择“文档拆分”
-  - 添加 .docx / .md / .txt / .pdf 文档
-  - 设置输出目录（输入 .docx 时，输出会保持为 .docx 分片，尽量保留原格式/表格/图片；输入 .pdf 时默认输出 .pdf 分片，也可导出为 txt/md/docx）
-  - 设置“标题拆分规则”（一级、二级、一级+二级）
-  - 可选“导入格式”：自动 / DOCX / Markdown / TXT / PDF（会限制可添加源文件类型）
-  - 可选“导出格式”：原格式 / DOCX / Markdown / TXT / PDF（PDF 导出目前仅支持 PDF 输入）
-- 文档一键排版：
-  - 选择“文档一键排版”
-  - 导入并选择模板 DOCX
-  - 选择待排版 DOCX，输出严格套用模板样式后的文档
-- 文档模板对照：
-  - 选择“文档模板对照”
-  - 导入并选择模板 DOCX
-  - 选择待检查 DOCX，输出差异报告 JSON 与调整后的 DOCX
-- 按大小拆分：
-  - 选择“按大小拆分”
-  - 设置“分片大小(MB)”
+---
 
-## 执行进度怎么看
-- 点击“开始执行”后，会立即看到：
-  - 状态栏显示“执行中...”
-  - 进度条显示 `x/y(%)`
-  - 日志区逐条输出处理结果
-- 只有“永久删除”会弹确认框，其他操作直接开始。
+## 1. 核心能力
 
-## 运行与打包
-### 本地运行
+### GUI（图形界面）
+GUI 当前提供 4 个主功能：
+
+1. `按大小拆分`
+   - 按指定 MB 大小切分文件
+   - 支持常规文件，PDF / DOCX 会走更合适的分片策略
+
+2. `文档拆分`
+   - 支持 `DOCX / Markdown / TXT / PDF`
+   - 支持按 `一级标题 / 二级标题 / 一级+二级` 拆分
+   - 优化章节边界，尽量保证每个分片只包含目标章节内容
+   - 可选 OCR（提取图片文字）
+
+3. `文档一键排版`
+   - 输入：模板 `.docx` + 待处理 `.docx`
+   - 输出：`*_formatted.docx`
+   - 重点对齐模板中的标题、正文、目录、表格等样式
+
+4. `文档模板对照`
+   - 输入：模板 `.docx` + 待检查 `.docx`
+   - 输出：
+     - `*_compare_report.docx`
+     - `*_compare_report.json`
+     - `*_adjusted.docx`
+   - 检查项包括：段落样式、缩进、行间距、公式编号、图编号、参考文献格式等
+
+### AI 辅助（已覆盖全部 GUI 功能）
+- AI 辅助不再只限“模板对照”，可用于所有 GUI 功能
+- 界面中只需选择服务商与模型，不需要手填接口地址（已内置）
+- 当前内置服务商：
+  - ChatGPT（OpenAI）
+  - DeepSeek
+  - 智谱 GLM
+  - Claude（Anthropic）
+  - Kimi（Moonshot）
+- 开启后会生成 AI 建议文件（Markdown）：
+  - 模板对照：`*_ai_assist.md`
+  - 其他操作：`*_{operation}_ai_assist.md`
+
+> 说明：使用 AI 功能仍需填写对应服务商可用的 `API Key`。
+
+### CLI（命令行）
+CLI 主要覆盖通用文件操作：
+- `copy`
+- `move`
+- `rename`
+- `delete`
+
+---
+
+## 2. 快速开始
+
+### 环境要求
+- Python `>= 3.11`
+- Windows（GUI 基于 PySide6）
+
+### 安装依赖
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\activate
-pip install -U pip
-pip install . -r requirements-dev.txt
+python -m pip install --upgrade pip
+pip install -r requirements-dev.txt
+pip install .
+```
+
+### 启动 GUI
+```powershell
 python scripts/entrypoint.py
 ```
 
-### 运行测试
+---
+
+## 3. GUI 使用说明
+
+1. 选择 `操作类型`
+2. 选择 `工作区`（安全范围）
+3. 添加源文件
+4. 配置目标目录 / 模板 / 拆分规则等参数
+5. 如需 AI，勾选“启用AI辅助（全功能）”，选择服务商和模型，填写 API Key
+6. 点击“开始执行”
+
+执行过程中可查看：
+- 进度条
+- 执行日志
+- 报告输出路径
+
+---
+
+## 4. 报告与输出
+
+### 模板对照
+- 结构化 JSON 报告
+- 可读 DOCX 报告（差异 + 建议）
+- 自动调整后的文档
+- 可选 AI 修订建议（Markdown）
+
+### 其他操作
+- 常规运行报告（通过界面“报告文件”配置）
+- 可选 AI 复盘建议（Markdown）
+
+---
+
+## 5. 测试
+
 ```powershell
 pytest
 ```
 
-### 构建 GUI EXE
+---
+
+## 6. 打包
+
+### 构建 EXE
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/build_exe.ps1
 ```
@@ -68,13 +135,31 @@ powershell -ExecutionPolicy Bypass -File scripts/build_installer.ps1
 ```
 输出：`dist/FileOps-Setup.exe`
 
-## OCR 说明
-- 图片文字识别依赖 `pytesseract` 与本机 Tesseract OCR。
-- 如未安装 Tesseract，文档拆分仍可执行，但图片文字可能无法识别。
+---
 
-## PDF 说明
-- PDF 优先按文档目录（书签）拆分；无目录时回退到标题文本规则。
-- 对加密 PDF（含权限保护），请先去除密码/限制后再拆分。
+## 7. 补充说明
 
-## 打包指令
-$env:HOME=(Get-Location).Path; $env:USERPROFILE=(Get-Location).Path; .\.venv\Scripts\python.exe -m PyInstaller --clean --noconfirm --windowed --onefile --name fileops --icon assets/fileops.ico --add-data "assets/fileops.ico;assets" --specpath build --paths src scripts/entrypoint.py
+### OCR
+- OCR 依赖：`pytesseract` + 系统安装的 Tesseract OCR
+- 未安装 Tesseract 时，不影响主流程，但图片文字提取能力受限
+
+### PDF
+- 优先按目录（书签）进行分段
+- 无目录时回退为文本标题规则
+- 加密 PDF 需先解除限制再处理
+
+---
+
+## 8. 项目结构（简要）
+
+```text
+src/fileops/
+  gui.py                # 图形界面与执行调度
+  document_split.py     # 文档拆分
+  word_template.py      # 模板排版
+  document_compare.py   # 模板对照
+  ai_assistant.py       # AI服务商、模型与建议生成
+  operations.py         # 通用文件操作
+  cli.py                # 命令行入口
+```
+
