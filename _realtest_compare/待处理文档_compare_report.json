@@ -1,0 +1,2413 @@
+{
+  "source": "e:\\flieops\\FileOps\\待处理文档.docx",
+  "summary": {
+    "total_issues": 240,
+    "style_mismatch": 59,
+    "direct_format_override": 181,
+    "equation_numbering": 0,
+    "figure_numbering": 0,
+    "reference_format": 0
+  },
+  "issues": [
+    {
+      "category": "direct_format_override",
+      "paragraph": 1,
+      "location": "段落#1",
+      "text": "# 基于多保真度神经算子的CFD流场数据压缩与超分辨率重建研究",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 2,
+      "location": "段落#2",
+      "text": "1. 论文研究的目的及意义",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 1",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 1”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 2,
+      "location": "段落#2",
+      "text": "1. 论文研究的目的及意义",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 3,
+      "location": "段落#3",
+      "text": "计算流体力学（CFD）作为船舶与海洋工程领域的核心技术，为流场预测与性能评估提供了关键的数值工具。当前，该领域的研发模式正经历一场深刻变革，从传统的“离线长时仿真驱动决策”加速向“在线评估与迭代优化驱动设计”转型。无论是船型外形的微调、阻力与推进性能的精细评估，还是舵后与螺旋桨尾迹复杂流动结构的判读，都对在有限时间内获",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 4,
+      "location": "段落#4",
+      "text": "在此背景下，数据驱动的代理模型因其极高的推理效率和在工程流程中就地部署的潜力而备受关注。尽管如此，若缺少严格的物理一致性约束与跨网格、跨工况的泛化稳健性，现有代理模型仍难以完全取代或有效补位高保真数值解。因此，本研究的核心目标在于构建一种“数据高效—物理一致—工程可用”的中枢方法论。该方法论旨在突破高保真样本稀缺的现实",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 5,
+      "location": "段落#5",
+      "text": "为应对这一挑战，有两条前沿技术路径提供了新的可能性。一是以神经算子（Neural Operator）为代表的算子学习方法，它们旨在直接学习无限维函数空间之间的映射，从而在理论上具备了跨网格、跨分辨率的泛化能力，为构建高效的PDE求解代理模型奠定了基础[1, 3, 4]。二是以扩散模型（Diffusion Models）",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 7,
+      "location": "段落#7",
+      "text": "本课题的研究意义首先体现在理论层面：我提出将“多保真度神经算子—离散潜变量—潜空间条件扩散”统一到一个可解释的协同框架之中，明确低保真与高保真之间在频带上的功能分工，让低保真分支承载大尺度骨架，让少量高保真样本专注于高波数带的细节校正；通过VQ码本构建可迁移的高频词典，将难以稳定学习的细节结构离散化并与频率编码耦合，以",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 9,
+      "location": "段落#9",
+      "text": "2. 国内外研究现状",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 1",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 1”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 9,
+      "location": "段落#9",
+      "text": "2. 国内外研究现状",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 11,
+      "location": "段落#11",
+      "text": "2.1 神经算子与算子学习",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 11,
+      "location": "段落#11",
+      "text": "2.1 神经算子与算子学习",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 12,
+      "location": "段落#12",
+      "text": "现有神经算子研究的核心在于突破传统卷积网络“像素到像素”的局限，直接在函数空间层面学习偏微分方程解的映射关系。FNO通过在傅里叶域进行卷积来实现参数共享与跨分辨率外推，在规则网格和周期性边界条件下表现尤为突出[1]。围绕神经算子的理论工作系统地讨论了逼近性质、误差上界、稳定性与泛化边界，为工程实践提供了可依赖的理论基石",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 13,
+      "location": "段落#13",
+      "text": "2.2 生成与表示学习",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 13,
+      "location": "段落#13",
+      "text": "2.2 生成与表示学习",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 14,
+      "location": "段落#14",
+      "text": "扩散模型在图像与信号生成中以稳定训练与高质量样本著称。DDPM与其改进版本通过正向加噪与反向去噪建立了从噪声到数据分布的稳健映射[11, 12]。潜空间扩散（LDM）把计算集中在压缩潜空间，显著降低了高分辨率生成的推理成本，同时维持了细节质量[13]。为了进一步加速生成过程，研究者们提出了多种高效采样策略[14]，并发",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 16,
+      "location": "段落#16",
+      "text": "2.3 多保真学习、不确定性量化与混合建模",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 16,
+      "location": "段落#16",
+      "text": "2.3 多保真学习、不确定性量化与混合建模",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 17,
+      "location": "段落#17",
+      "text": "多保真学习强调以少量高保真数据校正大量低保真数据的系统偏差，已在参数化PDE学习中得到验证[25]。近期的工作开始将贝叶斯优化与深度学习结合，构建能够主动查询高保真样本的多保真代理模型，以最大化信息增益[26]。同时，对代理模型预测结果的不确定性量化（Uncertainty Quantification, UQ）也愈发",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 18,
+      "location": "段落#18",
+      "text": "2.4 大规模应用与新兴交叉方向",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 18,
+      "location": "段落#18",
+      "text": "2.4 大规模应用与新兴交叉方向",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 19,
+      "location": "段落#19",
+      "text": "大规模地球系统模型（FourCastNet、PanguWeather、GraphCast、Earthformer）的成功[30, 31, 32, 33]展示了AI for Science的巨大潜力，这些模型在数据组织、训练流程、指标体系与工程部署方面积累了成熟经验。除了气象预报，AI基础模型也开始在材料科学（如预测材料",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 21,
+      "location": "段落#21",
+      "text": "2.5 存在的问题与不足",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 21,
+      "location": "段落#21",
+      "text": "2.5 存在的问题与不足",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 22,
+      "location": "段落#22",
+      "text": "综合现有研究工作可以看到，单保真训练难以在高保真样本稀缺的现实约束下稳定外推；高频细节生成的可控性与低频骨架之间的对齐仍不充分，导致能谱高波数段偏差与伪影；感知指标与物理指标的联合优化与审计闭环尚不坚实；复杂几何与非结构网格下的鲁棒性与推理效率难以平衡；缺少覆盖RL2、能谱误差、散度RMS、收敛曲线与域外泛化的统一小样",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 23,
+      "location": "段落#23",
+      "text": "在进一步梳理这些不足时，需要强调其相互耦合的本质：数据层面的多保真分布差异决定了频带分配与一致度量的必要性；表示层面的离散先验与潜在生成决定了高频重建的稳定性与可控性；优化层面的目标冲突决定了需要一种能够在不同量纲之间自适应协调的权重策略；泛化层面的几何与网格多样性决定了需要图结构与几何感知的融合表示；而评测层面的流程",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 24,
+      "location": "段落#24",
+      "text": "在数据可获得性方面，本研究关注三类来源：其一是来自高精度求解器的小规模DNS/LES样本，用于校正高波数带与边界层的细节；其二是大量可低成本获取的低分辨率数值样本与RANS结果，用于承载低频骨架与宏观流态；其三是通过参数化几何、边界与工况生成的合成数据，用于增强域覆盖与提升外推稳健性。与之配套，我将建立标准化的数据治理",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 27,
+      "location": "段落#27",
+      "text": "【图3A 数据治理流程与数据来源示意（此处插图）】",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 29,
+      "location": "段落#29",
+      "text": "【图3B 多保真数据频域分解与功能分工示意（此处插图）】",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 31,
+      "location": "段落#31",
+      "text": "3. 论文研究方案",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 1",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 1”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 31,
+      "location": "段落#31",
+      "text": "3. 论文研究方案",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 33,
+      "location": "段落#33",
+      "text": "3.1 研究目标",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 33,
+      "location": "段落#33",
+      "text": "3.1 研究目标",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 34,
+      "location": "段落#34",
+      "text": "本研究旨在在高保真样本稀缺、几何复杂且需工程可用的约束下，构建一种数据高效、物理一致、可部署的流场压缩与超分辨率重建方法。目标具体体现在四个方面：其一，在频带层面明确低保真与高保真的功能分工，建立低频骨架与高频校正的协同机制；其二，形成可解释且可迁移的高频先验与受控生成能力，使能谱高波数段与边界层细节得到稳定重建；其三",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 36,
+      "location": "段落#36",
+      "text": "3.2 研究内容",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 36,
+      "location": "段落#36",
+      "text": "3.2 研究内容",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 37,
+      "location": "段落#37",
+      "text": "本研究围绕\"多保真度流场数据压缩与重建方法研究\"这一核心主题，按照理论方法研究、模型应用方法研究、实验验证与评估研究三个层次展开，具体包括以下五个相互耦合的研究方向：",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 38,
+      "location": "段落#38",
+      "text": "3.2.1 多保真度流场数据构建与预处理研究",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 38,
+      "location": "段落#38",
+      "text": "3.2.1 多保真度流场数据构建与预处理研究",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 39,
+      "location": "段落#39",
+      "text": "针对多保真度数据来源多样、质量参差不齐的问题，本研究将构建标准化的数据治理流程。首先，建立低/高保真网格生成与配准机制，通过插值、对齐、同化等技术实现不同保真度数据间的空间一致性；其次，设计归一化统计与元数据管理策略，确保不同来源数据的量纲统一与物理量一致性；最后，开发多保真度特征提取与映射算法，识别低保真数据中的大尺",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 40,
+      "location": "段落#40",
+      "text": "3.2.2 基于神经算子的多保真度建模研究",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 40,
+      "location": "段落#40",
+      "text": "3.2.2 基于神经算子的多保真度建模研究",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 41,
+      "location": "段落#41",
+      "text": "构建FNO×WNO混合架构，充分发挥Fourier神经算子在频域全局建模和Wavelet神经算子在局部细节捕捉方面的优势。设计三融合策略：并行融合用于同时处理不同保真度的输入特征，级联融合用于逐步细化预测结果，注意力融合用于动态调整不同保真度信息的权重。建立多保真条件化输入与特征融合机制，使模型能够根据输入数据的保真度",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 43,
+      "location": "段落#43",
+      "text": "3.2.3 流场压缩与生成重建方法研究",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 43,
+      "location": "段落#43",
+      "text": "3.2.3 流场压缩与生成重建方法研究",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 44,
+      "location": "段落#44",
+      "text": "开发基于VQVAE的离散化编码技术，将连续的高频流场特征映射到离散的码本空间，实现高效压缩与稳定表示。结合小波变换预处理技术，在频域进行多尺度分解，为不同频率成分设计专门的编码策略。引入Wavelet Diffusion技术，在小波域进行噪声学习，实现可控的高频细节生成。设计多尺度超分辨率重建算法，从低分辨率输入逐步重",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 45,
+      "location": "段落#45",
+      "text": "3.2.4 训练与优化策略研究",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 45,
+      "location": "段落#45",
+      "text": "3.2.4 训练与优化策略研究",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 46,
+      "location": "段落#46",
+      "text": "设计渐进式多保真度训练策略，从低保真数据开始逐步引入高保真数据，避免训练过程中的不稳定性。构建多损失组合机制，平衡感知损失、物理损失和频域损失，确保模型在多个维度上的性能。实现GPU加速与分布式训练，提高大规模数据训练的效率，支持复杂几何和长时间序列的建模需求。",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 47,
+      "location": "段落#47",
+      "text": "3.2.5 评估对比与应用验证",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 47,
+      "location": "段落#47",
+      "text": "3.2.5 评估对比与应用验证",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 48,
+      "location": "段落#48",
+      "text": "建立一个全面的评估指标体系，包括相对L2误差（目标RL2 ≤ 0.35）、PSNR、SSIM、能谱误差等定量指标。设计消融实验与基线对比方案，与FNO、WNO、UNet等主流方法进行系统性比较。开展实际应用与部署验证，在船舶水动力学、海洋工程等实际场景中验证方法的工程可用性和性能优势。",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 49,
+      "location": "段落#49",
+      "text": "上述五个研究方向相互支撑，形成从数据预处理到模型训练、从算法设计到工程应用的完整技术链条，为多保真度流场数据压缩与重建提供系统性的解决方案。",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 51,
+      "location": "段落#51",
+      "text": "3.3 研究方案",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 51,
+      "location": "段落#51",
+      "text": "3.3 研究方案",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 52,
+      "location": "段落#52",
+      "text": "3.3.1 研究思路",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 52,
+      "location": "段落#52",
+      "text": "3.3.1 研究思路",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 53,
+      "location": "段落#53",
+      "text": "本研究采用\"数据预处理—模型设计—训练优化—评估验证\"的递进式研究思路。第一步，针对多保真度数据来源多样、质量参差不齐的问题，建立标准化的数据治理流程，包括网格配准、归一化处理和特征提取；第二步，设计基于神经算子的多保真度建模框架，通过FNO×WNO混合架构和三融合策略实现不同保真度数据的协同处理；第三步，开发流场压缩",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 55,
+      "location": "段落#55",
+      "text": "【图1 训练管线与数据流（算子主干—VQ词典—潜空间扩散，此处插图）】",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 57,
+      "location": "段落#57",
+      "text": "【图1B 多保真协同机制架构图（此处插图）】",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 58,
+      "location": "段落#58",
+      "text": "3.3.2 关键科学问题和解决思路",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 58,
+      "location": "段落#58",
+      "text": "3.3.2 关键科学问题和解决思路",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 59,
+      "location": "段落#59",
+      "text": "本研究面临的关键科学问题包括：其一，多保真度数据协同问题，如何有效融合不同保真度的数据，实现低保真数据承载大尺度结构、高保真数据校正细节特征的功能分工；其二，高频细节生成问题，如何通过VQVAE离散化编码和小波变换预处理，实现可控的高频细节生成和重建；其三，物理一致性保障问题，如何在生成过程中保持流场的物理约束，确保散",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 60,
+      "location": "段落#60",
+      "text": "针对上述问题，本研究采用以下解决思路：对于多保真度协同，通过FNO×WNO混合架构和三融合策略，实现不同保真度数据的有效融合；对于高频细节生成，利用VQVAE的离散化表示和Wavelet Diffusion的可控生成能力，实现高质量的高频细节重建；对于物理一致性，在训练过程中引入物理约束损失，包括散度惩罚、边界条件约束",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 61,
+      "location": "段落#61",
+      "text": "在目标函数设计上，本研究采用多损失组合的策略，主要包括：其一，重建损失，采用相对L2误差和SSIM/PSNR等感知指标，确保预测结果在像素级和结构上的准确性；其二，物理约束损失，包括散度惩罚项和边界条件约束，保证生成流场满足基本的物理规律；其三，频域损失，通过能谱误差约束，确保模型在高频细节上的重建质量。联合损失函数可",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 63,
+      "location": "段落#63",
+      "text": "【图2 能谱/散度/边界一致性联合审计面板（此处插图）】",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 64,
+      "location": "段落#64",
+      "text": "在频带划分方面，本研究将采用小波变换对流场进行多尺度分解，将流场分为低频、中频和高频三个频段，分别对应大尺度结构、中等尺度特征和小尺度细节。通过这种频域分解，可以实现不同保真度数据的功能分工，低保真数据主要承载低频信息，高保真数据用于校正高频细节。",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 65,
+      "location": "段落#65",
+      "text": "在数据流设计上，输入包括几何信息、边界条件和低保真流场数据；输出为目标高保真流场。中间处理过程包括多保真度特征提取、频域分解、VQ编码和条件生成等步骤。评估指标包括重建误差、物理一致性指标和频域误差等，确保生成结果在多个维度上的质量。",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 67,
+      "location": "段落#67",
+      "text": "【图2A 频带分解与对齐机制示意图（此处插图）】",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 69,
+      "location": "段落#69",
+      "text": "【表1 变量/指标与符号对照表（此处插表）】",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 70,
+      "location": "段落#70",
+      "text": "3.4 前期准备工作与研究基础",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 70,
+      "location": "段落#70",
+      "text": "3.4 前期准备工作与研究基础",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 71,
+      "location": "段落#71",
+      "text": "为确保本研究计划的可行性与前瞻性，我已开展了扎实的前期准备工作，具体内容如下：",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 72,
+      "location": "段落#72",
+      "text": "（1）深入的文献综述与问题凝练：我对超过60篇相关领域的代表性文献进行了系统性的梳理与精读，重点聚焦于神经算子理论与架构、科学计算中的生成模型以及多保真度学习三大方向。通过深入分析各类方法的优势、局限性及其内在联系，我识别出当前研究中\"多保真数据与物理约束下的算子学习与生成模型系统性整合\"这一课题，并在此基础上总结出本",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 73,
+      "location": "段落#73",
+      "text": "（2）实验平台搭建与数据准备：我已搭建了深度学习实验平台，该平台基于PyTorch 1.12+与CUDA 11.6+，并在NVIDIA RTX 4060 GPU上完成部署与测试。在数据层面，我已使用openfoam进行烟雾仿真，导出小样本低保真与高保真数据集，并用我的方法进行小样本验证，效果比较满意。",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 74,
+      "location": "段落#74",
+      "text": "（3）核心基线模型的复现与性能对标：为验证我对核心算法的理解以及实验平台的正确性，我基于PyTorch从零开始复现了经典的Fourier Neural Operator (FNO)模型。在二维NavierStokes标准算例上，我的复现模型在训练100个epoch后，于测试集上达到了5.8e3的相对L2误差，成功达到了",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 75,
+      "location": "段落#75",
+      "text": "（4）关键技术方案的可行性探索：我针对方案中的核心创新点开展了小规模的探索性实验。为验证利用向量量化（VQ）表示高频信息的可行性，我通过对高保真流场进行高通滤波提取其高频残差场，并训练了一个小型的VQVAE模型。实验结果表明，离散的码本（codebook）能够有效捕捉到如小尺度涡旋等典型的高频流动结构，初步证实了以离散",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 76,
+      "location": "段落#76",
+      "text": "3.5 论文创新点",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 76,
+      "location": "段落#76",
+      "text": "3.5 论文创新点",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 77,
+      "location": "段落#77",
+      "text": "（1）FNO×WNO混合架构设计方法：提出针对CFD流场重建的FNO×WNO混合架构设计方法，实现基于多保真度数据输入的全局频谱与局部小波特征协同重建。该架构充分发挥Fourier神经算子在频域全局建模和Wavelet神经算子在局部细节捕捉方面的优势，通过三融合策略（并行、级联、注意力）实现不同保真度数据的有效融合。",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 78,
+      "location": "段落#78",
+      "text": "（2）VQVAE+Wavelet Diffusion协同压缩方法：提出针对CFD流场压缩重建的VQVAE+Wavelet Diffusion协同压缩方法，有效降低流场数据存储需求，实现无损质量的多尺度超分辨率重建。该方法结合向量量化的离散化表示和小波域扩散的可控生成能力，实现高质量的高频细节重建。",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 79,
+      "location": "段落#79",
+      "text": "（3）渐进式三阶段训练策略：提出针对多保真度神经算子训练的渐进式三阶段训练策略，通过基础→融合→精调的递进训练，实现模型泛化能力的显著提升。该策略从低保真数据开始逐步引入高保真数据，避免训练过程中的不稳定性。",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 80,
+      "location": "段落#80",
+      "text": "（4）FiLM条件化调制与多尺度融合方法：提出针对流场特征增强的FiLM条件化调制与多尺度融合方法，通过动态特征权重调整和跨尺度信息传递，提升重建流场的细节保持能力。该方法能够根据输入数据的保真度特征自适应调整处理策略。",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 82,
+      "location": "段落#82",
+      "text": "图4 典型工况方法对比（UNet/FNO/WNO/MFNO",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 85,
+      "location": "段落#85",
+      "text": "【图4B 复杂几何与非结构网格泛化能力对比（此处插图）】",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 86,
+      "location": "段落#86",
+      "text": "与现有基线的关系方面，本研究提出的四个创新点与现有方法形成互补关系：FNO×WNO混合架构在现有FNO和WNO基础上，通过协同设计实现全局频谱与局部小波特征的融合；VQVAE+Wavelet Diffusion方法在现有生成模型基础上，结合向量量化和小波域扩散实现更高效的流场压缩重建；渐进式三阶段训练策略在现有训练方法",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 87,
+      "location": "段落#87",
+      "text": "在前期准备方面，我已经完成了相关技术的基础准备工作：完成了FNO模型的复现与性能对标，为FNO×WNO混合架构设计提供了基础；进行了VQVAE模型的探索性实验，验证了向量量化在流场表示中的可行性，为VQVAE+Wavelet Diffusion协同压缩方法奠定了基础；完成了多保真度数据集的构建和预处理，为渐进式三阶段训",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 93,
+      "location": "段落#93",
+      "text": "【图5 前期工作成果展示（基线复现、VQ词典、条件扩散原型，此处插图）】",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 95,
+      "location": "段落#95",
+      "text": "4. 论文进度安排",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 1",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 1”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 95,
+      "location": "段落#95",
+      "text": "4. 论文进度安排",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 96,
+      "location": "段落#96",
+      "text": "整体进度安排分为两个主要阶段：准备阶段（0-3月）和验证阶段（8-12月），共12个月完成。当前进度为3月，已完成文献调研，正在进行CFD数据集构建。",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 97,
+      "location": "段落#97",
+      "text": "准备阶段（0-3月）：",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 98,
+      "location": "段落#98",
+      "text": "文献调研（0-2.5月）：已完成，完成超过60篇相关文献的系统性梳理与阅读",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 99,
+      "location": "段落#99",
+      "text": "CFD数据集构建（0-3.5月）：正在进行，包括圆柱绕流数据生成与预处理，预计3.5月完成",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 100,
+      "location": "段落#100",
+      "text": "MFNO模型设计（2.5-4.5月）：进行中，包括FNO+WNO架构设计",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 101,
+      "location": "段落#101",
+      "text": "融合策略实现（3.5-6月）：包括并联/级联/注意力融合方法实现",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 103,
+      "location": "段落#103",
+      "text": "验证阶段（8-12月）：",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 104,
+      "location": "段落#104",
+      "text": "模型训练优化（4.5-8月）：多保真度训练与调参",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 105,
+      "location": "段落#105",
+      "text": "GPU加速优化（6.5-8.5月）：AMP/DDP并行训练优化",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 106,
+      "location": "段落#106",
+      "text": "消融实验验证（8.5-10月）：融合策略对比实验",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 107,
+      "location": "段落#107",
+      "text": "论文撰写（9-11.5月）：论文初稿完成",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 109,
+      "location": "段落#109",
+      "text": "关键节点：",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 110,
+      "location": "段落#110",
+      "text": "数据集完成（3.5月）",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 111,
+      "location": "段落#111",
+      "text": "模型完成（6月）",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 112,
+      "location": "段落#112",
+      "text": "训练完成（8月）",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 113,
+      "location": "段落#113",
+      "text": "实验完成（10月）",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 114,
+      "location": "段落#114",
+      "text": "论文完成（11.5月）",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 115,
+      "location": "段落#115",
+      "text": "各阶段的交付物将以\"模型—脚本—报告—可视化\"四元打包形式归档：模型侧包含权重文件与配置；脚本侧包含训练、评测与可复现的绘图程序；报告侧包含阶段性复盘与风险记录；可视化侧包含能谱曲线、散度分布、边界切片与误差热力图等。为保证结果可迁移与可复用，我将对数据接口、几何编码与边界描述进行标准化抽象，并在推理侧提供简化API，",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 116,
+      "location": "段落#116",
+      "text": "5. 预期成果与产出形态",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 1",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 1”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 116,
+      "location": "段落#116",
+      "text": "5. 预期成果与产出形态",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 117,
+      "location": "段落#117",
+      "text": "预期成果主要包括理论方法和技术实现两个方面。在理论方法方面，将探索FNO×WNO混合架构、VQ-VAE+Wavelet Diffusion协同压缩、渐进式三阶段训练策略以及FiLM条件化调制等关键技术，形成多保真度流场重建的理论框架；在技术实现方面，将完成相关算法的代码实现，包括模型训练脚本、基础评测工具和可视化功能，",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 118,
+      "location": "段落#118",
+      "text": "8. 论文章节安排",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 1",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 1”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 118,
+      "location": "段落#118",
+      "text": "8. 论文章节安排",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 119,
+      "location": "段落#119",
+      "text": "本论文拟分为六章，具体安排如下：",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 120,
+      "location": "段落#120",
+      "text": "第一章 绪论",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 1",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 1”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 120,
+      "location": "段落#120",
+      "text": "第一章 绪论",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 121,
+      "location": "段落#121",
+      "text": "1.1 研究背景与意义",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 121,
+      "location": "段落#121",
+      "text": "1.1 研究背景与意义",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 122,
+      "location": "段落#122",
+      "text": "1.2 国内外研究现状",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 122,
+      "location": "段落#122",
+      "text": "1.2 国内外研究现状",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 123,
+      "location": "段落#123",
+      "text": "1.3 存在的问题与挑战",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 123,
+      "location": "段落#123",
+      "text": "1.3 存在的问题与挑战",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 124,
+      "location": "段落#124",
+      "text": "1.4 研究内容与创新点",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 124,
+      "location": "段落#124",
+      "text": "1.4 研究内容与创新点",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 125,
+      "location": "段落#125",
+      "text": "1.5 论文组织结构",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 125,
+      "location": "段落#125",
+      "text": "1.5 论文组织结构",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 126,
+      "location": "段落#126",
+      "text": "第二章 相关理论基础",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 1",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 1”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 126,
+      "location": "段落#126",
+      "text": "第二章 相关理论基础",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 127,
+      "location": "段落#127",
+      "text": "2.1 神经算子理论基础",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 127,
+      "location": "段落#127",
+      "text": "2.1 神经算子理论基础",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 128,
+      "location": "段落#128",
+      "text": "2.2 生成模型与扩散过程",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 128,
+      "location": "段落#128",
+      "text": "2.2 生成模型与扩散过程",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 129,
+      "location": "段落#129",
+      "text": "2.3 多保真度学习方法",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 129,
+      "location": "段落#129",
+      "text": "2.3 多保真度学习方法",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 130,
+      "location": "段落#130",
+      "text": "2.4 物理信息神经网络",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 130,
+      "location": "段落#130",
+      "text": "2.4 物理信息神经网络",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 131,
+      "location": "段落#131",
+      "text": "2.5 向量量化与离散表示",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 131,
+      "location": "段落#131",
+      "text": "2.5 向量量化与离散表示",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 132,
+      "location": "段落#132",
+      "text": "第三章 多保真度神经算子框架设计",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 1",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 1”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 132,
+      "location": "段落#132",
+      "text": "第三章 多保真度神经算子框架设计",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 133,
+      "location": "段落#133",
+      "text": "3.1 总体架构设计",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 133,
+      "location": "段落#133",
+      "text": "3.1 总体架构设计",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 134,
+      "location": "段落#134",
+      "text": "3.2 多保真协同机制",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 134,
+      "location": "段落#134",
+      "text": "3.2 多保真协同机制",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 135,
+      "location": "段落#135",
+      "text": "3.3 频带分解与功能分工",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 135,
+      "location": "段落#135",
+      "text": "3.3 频带分解与功能分工",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 136,
+      "location": "段落#136",
+      "text": "3.4 离散高频词典构建",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 136,
+      "location": "段落#136",
+      "text": "3.4 离散高频词典构建",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 137,
+      "location": "段落#137",
+      "text": "3.5 潜空间条件扩散生成",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 137,
+      "location": "段落#137",
+      "text": "3.5 潜空间条件扩散生成",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 139,
+      "location": "段落#139",
+      "text": "第四章 物理约束与联合优化",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 1",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 1”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 139,
+      "location": "段落#139",
+      "text": "第四章 物理约束与联合优化",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 140,
+      "location": "段落#140",
+      "text": "4.1 物理一致性约束设计",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 140,
+      "location": "段落#140",
+      "text": "4.1 物理一致性约束设计",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 141,
+      "location": "段落#141",
+      "text": "4.2 联合损失函数构建",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 141,
+      "location": "段落#141",
+      "text": "4.2 联合损失函数构建",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 142,
+      "location": "段落#142",
+      "text": "4.3 自适应权重调度策略",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 142,
+      "location": "段落#142",
+      "text": "4.3 自适应权重调度策略",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 143,
+      "location": "段落#143",
+      "text": "4.4 频域对齐机制",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 143,
+      "location": "段落#143",
+      "text": "4.4 频域对齐机制",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 144,
+      "location": "段落#144",
+      "text": "4.5 物理审计与评估体系",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 144,
+      "location": "段落#144",
+      "text": "4.5 物理审计与评估体系",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 146,
+      "location": "段落#146",
+      "text": "第五章 复杂几何与网格泛化",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 1",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 1”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 146,
+      "location": "段落#146",
+      "text": "第五章 复杂几何与网格泛化",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 147,
+      "location": "段落#147",
+      "text": "5.1 几何感知算子设计",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 147,
+      "location": "段落#147",
+      "text": "5.1 几何感知算子设计",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 148,
+      "location": "段落#148",
+      "text": "5.2 非结构网格适配",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 148,
+      "location": "段落#148",
+      "text": "5.2 非结构网格适配",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 149,
+      "location": "段落#149",
+      "text": "5.3 跨网格训练策略",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 149,
+      "location": "段落#149",
+      "text": "5.3 跨网格训练策略",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 150,
+      "location": "段落#150",
+      "text": "5.4 域外泛化增强",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 150,
+      "location": "段落#150",
+      "text": "5.4 域外泛化增强",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 151,
+      "location": "段落#151",
+      "text": "5.5 推理效率优化",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 151,
+      "location": "段落#151",
+      "text": "5.5 推理效率优化",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 153,
+      "location": "段落#153",
+      "text": "第六章 实验验证与工程应用",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 1",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 1”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 153,
+      "location": "段落#153",
+      "text": "第六章 实验验证与工程应用",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 154,
+      "location": "段落#154",
+      "text": "6.1 实验设置与数据集",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 154,
+      "location": "段落#154",
+      "text": "6.1 实验设置与数据集",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 155,
+      "location": "段落#155",
+      "text": "6.2 基线方法对比",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 155,
+      "location": "段落#155",
+      "text": "6.2 基线方法对比",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 156,
+      "location": "段落#156",
+      "text": "6.3 消融实验分析",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 156,
+      "location": "段落#156",
+      "text": "6.3 消融实验分析",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 157,
+      "location": "段落#157",
+      "text": "6.4 工程应用案例",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 157,
+      "location": "段落#157",
+      "text": "6.4 工程应用案例",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "style_mismatch",
+      "paragraph": 158,
+      "location": "段落#158",
+      "text": "6.5 性能评估与讨论",
+      "detail": "段落样式与模板不一致",
+      "expected": "Heading 2",
+      "actual": "Normal",
+      "adjustment": "将该段设为样式“Heading 2”。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 158,
+      "location": "段落#158",
+      "text": "6.5 性能评估与讨论",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"first_line_indent\": \"440 twips\", \"line_spacing\": \"1.5\", \"line_spacing_rule\": \"ONE_POINT_FIVE (1)\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 161,
+      "location": "段落#161",
+      "text": "[1] Li, Z., Kovachki, N., Azizzadenesheli, K., Liu, B., Bhattacharya, K., Stuart, A., Anandkumar, A. Fourier Neural Operator for Parametric Partial Differential",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 162,
+      "location": "段落#162",
+      "text": "[2] Kovachki, N., Li, Z., Azizzadenesheli, K., Liu, B., Bhattacharya, K., Stuart, A., Anandkumar, A. Neural Operator: Learning Maps Between Function Spaces. JML",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 163,
+      "location": "段落#163",
+      "text": "[3] Lu, L., Jin, P., Karniadakis, G.E. Learning Nonlinear Operators via DeepONet based on the Universal Approximation Theorem of Operators. Nature Machine Intel",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 164,
+      "location": "段落#164",
+      "text": "[4] Li, Z., Kovachki, N., Azizzadenesheli, K., Choy, J., Lu, L., Anandkumar, A., Stuart, A., Bhattacharya, K. PhysicsInformed Neural Operator for Learning Parti",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 165,
+      "location": "段落#165",
+      "text": "[5] Brandstetter, J., Worrall, D., Welling, M. Message Passing Neural PDE Solvers. ICLR, 2022.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 166,
+      "location": "段落#166",
+      "text": "[6] Pfaff, T., Fortunato, M., SanchezGonzalez, A., Battaglia, P.W. Learning MeshBased Simulation with Graph Networks. ICML, 2021.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 167,
+      "location": "段落#167",
+      "text": "[7] SanchezGonzalez, A., Godwin, J., Pfaff, T., Ying, R., Leskovec, J., Battaglia, P. Learning to Simulate Complex Physics with Graph Networks. ICML, 2020.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 168,
+      "location": "段落#168",
+      "text": "[8] Gupta, A., Li, Z., Kovachki, N., Azizzadenesheli, K., Choi, S., Anandkumar, A. Multiwaveletbased Operator Learning for Differential Equations. ICLR, 2022.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 169,
+      "location": "段落#169",
+      "text": "[9] Wen, G., Li, Z., Azizzadenesheli, K., et al. UFNO—An Effective Baseline for Learning Operator Kernels in Navier–Stokes Equations. arXiv:2203.04838, 2022.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 170,
+      "location": "段落#170",
+      "text": "[10] Thuerey, N., Weymouth, G.D., Mickalenko, M., et al. Deep learning methods for Reynoldsaveraged NavierStokes simulations of airfoil flows. Journal of Comput",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 171,
+      "location": "段落#171",
+      "text": "[11] Ho, J., Jain, A., Abbeel, P. Denoising Diffusion Probabilistic Models. NeurIPS, 2020.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 172,
+      "location": "段落#172",
+      "text": "[12] Nichol, A., Dhariwal, P. Improved Denoising Diffusion Probabilistic Models. In Proceedings of the 38th International Conference on Machine Learning (ICML),",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 173,
+      "location": "段落#173",
+      "text": "[13] Rombach, R., Blattmann, A., Lorenz, D., Esser, P., Ommer, B. HighResolution Image Synthesis with Latent Diffusion Models. ECCV, 2022.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 174,
+      "location": "段落#174",
+      "text": "[14] Song, J., Meng, C., Ermon, S. Denoising Diffusion Implicit Models. In International Conference on Learning Representations (ICLR), 2021.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 175,
+      "location": "段落#175",
+      "text": "[15] Song, Y., Dhariwal, P., Chen, M., Sutskever, I. Consistency Models. In Proceedings of the 40th International Conference on Machine Learning (ICML), 2023.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 176,
+      "location": "段落#176",
+      "text": "[16] Lipman, Y., Chen, R. T. Q., BenHamu, H., et al. Flow Matching for Generative Modeling. In International Conference on Learning Representations (ICLR), 2023",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 177,
+      "location": "段落#177",
+      "text": "[17] Esser, P., Rombach, R., Ommer, B. Taming Transformers for HighResolution Image Synthesis. CVPR, 2021.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 178,
+      "location": "段落#178",
+      "text": "[18] Tancik, M., Srinivasan, P., Mildenhall, B., et al. Fourier Features Let Networks Learn High Frequency Functions in Low Dimensional Domains. In Advances in ",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 179,
+      "location": "段落#179",
+      "text": "[19] Cao, S., Li, H., Li, H., et al. OFormer: Operatorlearning with Transformers for Neural Solution of Highdimensional Parametric PDEs. arXiv:2305.18571, 2023.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 180,
+      "location": "段落#180",
+      "text": "[20] Li, Z., Zheng, H., Kovachki, N., et al. GNOT: A General Neural Operator Transformer for operator learning. arXiv:2305.12258, 2023.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 181,
+      "location": "段落#181",
+      "text": "[21] Brandstetter, J., Ruyssinck, J., Worrall, D., et al. Cliffordvalued and SO(3)equivariant graph neural networks. In International Conference on Learning Rep",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 182,
+      "location": "段落#182",
+      "text": "[22] Nelsen, N. H., & Stuart, A. M. The Random Feature Model for InputtoState Maps. Journal of Machine Learning Research, 24(163):162, 2023.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 183,
+      "location": "段落#183",
+      "text": "[23] Shu, J., Chen, Y., & Duraisamy, K. Generative models for physicsinformed superresolution of turbulent flows. In Proceedings of the AAAI Conference on Artif",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 184,
+      "location": "段落#184",
+      "text": "[24] Wu, Z.,J., Wang, Y.,C., & Tian, Y. Learning macroscopic behavior of molecular dynamics using neural operator. In International Conference on Learning Repre",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 185,
+      "location": "段落#185",
+      "text": "[25] Meng, X., Karniadakis, G.E. Multifidelity Neural Operators for Parametric Partial Differential Equations. Journal of Computational Physics, 469:111496, 202",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 186,
+      "location": "段落#186",
+      "text": "[26] Zhang, Y., Song, S., & Sun, H. Bayesian deep learning for multifidelity data fusion in engineering design. Journal of Computational Physics, 475, 111831, 2",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 187,
+      "location": "段落#187",
+      "text": "[27] Psaros, A. F., Meng, X., Zou, Z., et al. Uncertainty quantification in scientific machine learning: Methods, metrics, and comparisons. Journal of Computati",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 188,
+      "location": "段落#188",
+      "text": "[28] Patel, R. G., & Weatheritt, J. Physicsinformed neural networks for hybridRANS/LES modelling. Journal of Computational Physics, 483, 112089, 2023.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 189,
+      "location": "段落#189",
+      "text": "[29] Vinuesa, R., & Brunton, S. L. Enhancing computational fluid dynamics with machine learning. Nature Computational Science, 2(6), 358366, 2022.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 190,
+      "location": "段落#190",
+      "text": "[30] Pathak, J., Subramanian, S., Harrington, P., et al. FourCastNet: A Global Datadriven HighResolution Weather Model. NeurIPS, 2022.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 191,
+      "location": "段落#191",
+      "text": "[31] Bi, K., Zhang, Y., Chen, J., Zhang, Z., Wang, Y., Zhang, W., Chen, H. Accurate MediumRange Global Weather Forecasting with 3D Neural Networks (PanguWeather",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 192,
+      "location": "段落#192",
+      "text": "[32] Lam, R., Bouallegue, Z.B., et al. Learning Skillful Mediumrange Global Weather Forecasting. Science, 382(6669):1416–1421, 2023.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 193,
+      "location": "段落#193",
+      "text": "[33] Shi, X., Chen, Z., et al. Earthformer: Exploring Spacetime Transformers for Earth System Forecasting. NeurIPS, 2022.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 194,
+      "location": "段落#194",
+      "text": "[34] Wang, S., Zhao, Z., Sun, Y., et al. A largescale foundation model for material science. Science, 381(6661):977983, 2023.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 195,
+      "location": "段落#195",
+      "text": "[35] Jumper, J., Evans, R., Pritzel, A., et al. Highly accurate protein structure prediction with AlphaFold. Nature, 596(7873):583–589, 2021.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 196,
+      "location": "段落#196",
+      "text": "[36] Chen, Z., & Xiu, D. Machine learning for multiscale modeling and simulation in energy systems. Nature Reviews Electrical Engineering, 1(2), 114128, 2024.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 197,
+      "location": "段落#197",
+      "text": "[37] Gruver, N., Finzi, M., Stanton, S., et al. Large language models for mathematical discovery. Nature, 629, 811–818, 2024.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 198,
+      "location": "段落#198",
+      "text": "[38] Lusch, B., Kutz, J. N., & Brunton, S. L. Deep learning for universal linear embeddings of nonlinear dynamics. Nature Communications, 9(1):4950, 2018.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 199,
+      "location": "段落#199",
+      "text": "[39] Holl, P., Beyer, J., & Thuerey, N. Learning to control PDEs with differentiable physics. In International Conference on Machine Learning (ICML), 2020.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 200,
+      "location": "段落#200",
+      "text": "[40] de Avila BelbutePeres, F., Economon, T., & Kolter, Z. Endtoend differentiable physics for learning and control. In Advances in Neural Information Processin",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 201,
+      "location": "段落#201",
+      "text": "[41] Samek, W., Montavon, G., Lapuschkin, S., et al. Explaining deep neural networks and beyond: A review of methods and applications. Proceedings of the IEEE, ",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 202,
+      "location": "段落#202",
+      "text": "[42] Arnaldo, S., O'Reilly, U.M., & Veeramachaneni, K. An empirical evaluation of building highquality regression models with evolutionary algorithms. In Geneti",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 203,
+      "location": "段落#203",
+      "text": "[43] Udrescu, S.M., & Tegmark, M. AI Feynman: A physicsinspired method for symbolic regression. Science Advances, 6(16):eaay2631, 2020.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 204,
+      "location": "段落#204",
+      "text": "[44] Cranmer, M., Sanchez Gonzalez, A., Battaglia, P., et al. Discovering symbolic models from deep learning with inductive biases. In Advances in Neural Inform",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 205,
+      "location": "段落#205",
+      "text": "[45] Karniadakis, G.E., Kevrekidis, I., Lu, L., Perdikaris, P., Wang, S., Yang, L. Physicsinformed Machine Learning. Nature Reviews Physics, 3:422–440, 2021.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 206,
+      "location": "段落#206",
+      "text": "[46] Hinton, G., Vinyals, O., & Dean, J. Distilling the knowledge in a neural network. arXiv:1503.02531, 2015.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 207,
+      "location": "段落#207",
+      "text": "[47] Kendall, A., Gal, Y., & Cipolla, R. Multitask learning using uncertainty to weigh losses for scene geometry and semantics. In Proceedings of the IEEE Confe",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 208,
+      "location": "段落#208",
+      "text": "[48] Li, Z., Wu, J., Kovachki, N., et al. GeoFNO: A GeometryInformed Fourier Neural Operator for LargeScale Scientific and Engineering Simulations. In Proceedin",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 209,
+      "location": "段落#209",
+      "text": "[49] Kochkov, D., Smith, J., Alieva, A., Wang, Q., Brenner, M.P., Hoyer, S. Machine Learning–Accelerated Computational Fluid Dynamics. PNAS, 118(21):e2101784118",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 210,
+      "location": "段落#210",
+      "text": "[50] Duraisamy, K., Iaccarino, G., & Xiao, H. Turbulence modeling in the age of data. Annual Review of Fluid Mechanics, 51, 357377, 2019.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 211,
+      "location": "段落#211",
+      "text": "[51] Bevilacqua, M., Frasca, M., & Lomonaco, V. Gauge Equivariant Mesh CNNs: Anisotropic convolutions on geometric graphs. In International Conference on Learni",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 212,
+      "location": "段落#212",
+      "text": "[52] Lanthaler, S., Mishra, S., & Karniadakis, G. E. Error estimates for deep neural networks approximating functions in Sobolev spaces. Neural Networks, 151, 1",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 213,
+      "location": "段落#213",
+      "text": "[53] Wu, H., Liu, Y., & Wang, J. Physicsconstrained generative adversarial network for threedimensional turbulence. Physical Review Fluids, 7(7), 074603, 2022.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 214,
+      "location": "段落#214",
+      "text": "[54] The AI for Science, Discovery, and Innovation Collaboration. Foundational Models for Science. arXiv:2403.12190, 2024.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    },
+    {
+      "category": "direct_format_override",
+      "paragraph": 215,
+      "location": "段落#215",
+      "text": "[55] Li, Z., Liu, Y., & Anandkumar, A. Inverse Problems with Neural Operators. In International Conference on Learning Representations (ICLR), 2023.",
+      "detail": "段落存在直接格式覆盖",
+      "expected": "跟随模板样式（不使用段落直接格式）",
+      "actual": "{\"line_spacing\": \"1.0\"}",
+      "adjustment": "清除该段的直接缩进/行距/间距设置，仅保留样式格式。"
+    }
+  ]
+}

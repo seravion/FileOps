@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fileops"
+version = "0.1.0"
+description = "Desktop file operation toolkit with copy, move, rename, delete, and document split."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+  { name = "FileOps Team" }
+]
+dependencies = [
+  "send2trash>=1.8.3",
+  "python-docx>=1.1.2",
+  "Pillow>=10.4.0",
+  "pytesseract>=0.3.10",
+  "PySide6>=6.7.2",
+  "pypdf>=5.4.0",
+  "cryptography>=42.0.0"
+]
+
+[project.scripts]
+fileops = "fileops.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fileops"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
