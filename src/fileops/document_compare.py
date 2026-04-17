@@ -142,6 +142,34 @@ def compare_documents_with_template(
     return results
 
 
+def analyze_document_with_template(source: Path, template_path: Path) -> dict[str, Any]:
+    if Document is None:
+        raise RuntimeError("python-docx is not installed. Please install dependencies first.")
+
+    source = source.resolve(strict=False)
+    template_path = template_path.resolve(strict=False)
+
+    if not source.exists():
+        raise FileNotFoundError(f"Source does not exist: {source}")
+    if source.is_dir():
+        raise IsADirectoryError(f"Document compare supports files only: {source}")
+    if source.suffix.lower() != ".docx":
+        raise ValueError("Document compare supports .docx files only.")
+
+    if not template_path.exists():
+        raise FileNotFoundError(f"Template does not exist: {template_path}")
+    if template_path.suffix.lower() != ".docx":
+        raise ValueError("Template must be a .docx file.")
+
+    template_doc = Document(str(template_path))
+    template_rules = _extract_template_rules(template_doc)
+    return _analyze_document_against_template(
+        source,
+        template_rules,
+        template_name=template_path.name,
+    )
+
+
 def _extract_template_rules(template_doc: Any) -> dict[str, Any]:
     normal_style = _resolve_first_style_name(template_doc, ("Normal", "正文", "Body Text")) or "Normal"
 

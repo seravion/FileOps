@@ -8,7 +8,7 @@ from docx import Document
 from docx.shared import Pt
 
 import fileops.document_compare as document_compare_module
-from fileops.document_compare import compare_documents_with_template
+from fileops.document_compare import analyze_document_with_template, compare_documents_with_template
 from fileops.models import OperationStatus
 
 
@@ -87,6 +87,22 @@ def test_document_compare_generates_report_and_adjusted_file() -> None:
         assert "location" in first_issue
         assert "adjustment" in first_issue
         assert "category_label" in first_issue
+
+
+def test_analyze_document_with_template_returns_summary() -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        template = root / "template.docx"
+        source = root / "paper.docx"
+
+        _build_template(template)
+        _build_source_with_mismatches(source)
+
+        analysis = analyze_document_with_template(source=source, template_path=template)
+        assert analysis["overview"]["template_name"] == template.name
+        assert analysis["overview"]["source_name"] == source.name
+        assert int(analysis["summary"]["total_issues"]) > 0
+        assert isinstance(analysis["issues"], list)
 
 
 def test_document_compare_dry_run_does_not_write_files() -> None:

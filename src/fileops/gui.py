@@ -10,8 +10,10 @@ from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
     QComboBox,
-    QDoubleSpinBox,
+    QDialog,
+    QDialogButtonBox,
     QFileDialog,
+    QFormLayout,
     QFrame,
     QGroupBox,
     QGraphicsDropShadowEffect,
@@ -34,11 +36,16 @@ from PySide6.QtWidgets import (
 )
 
 from .document_split import split_documents_by_structure
-from .document_compare import compare_documents_with_template
-from .ai_assistant import generate_operation_ai_report, list_ai_providers, list_models_for_provider
+from .document_compare import analyze_document_with_template, compare_documents_with_template
+from .document_convert import convert_documents_format
+from .ai_assistant import (
+    generate_compare_ai_report,
+    generate_operation_ai_report,
+    list_ai_providers,
+    list_models_for_provider,
+)
 from .models import OperationResult, RunReport
 from .word_template import format_word_documents, import_word_template, list_word_templates
-from .operations import CommonOptions, split_items
 from .reporting import write_report
 from .utils import unique_path
 
@@ -46,11 +53,12 @@ from .utils import unique_path
 TRANSLATIONS: dict[str, dict[str, str]] = {
     "zh": {
         "window_title": "FileOps 文件操作工具",
-        "subtitle": "支持按大小拆分/文档拆分/文档一键排版/模板对照",
+        "subtitle": "支持文档拆分/文档转换/文档一键排版/模板对照",
         "group_basic": "基础配置",
         "label_operation": "操作类型",
         "label_language": "语言",
         "button_settings": "设置",
+        "menu_ai_settings": "AI设置",
         "label_workspace": "工作区（安全范围）",
         "button_browse": "浏览",
         "group_sources": "源文件列表",
@@ -78,6 +86,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "label_doc_mode": "标题拆分规则",
         "label_import_format": "导入格式",
         "label_export_format": "导出格式",
+        "label_source_format": "源文件格式",
+        "label_target_format": "目标文件格式",
         "label_template": "排版模板",
         "button_import_template": "导入模板",
         "button_refresh_templates": "刷新模板库",
@@ -134,9 +144,16 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "error_missing_ai_provider": "已启用AI辅助，请选择模型服务商。",
         "error_missing_ai_api_key": "已启用AI辅助，请填写 API Key。",
         "error_missing_ai_model": "已启用AI辅助，请填写模型名称。",
+        "dialog_ai_settings_title": "AI设置",
+        "dialog_ai_settings_provider": "模型服务商",
+        "dialog_ai_settings_model": "模型",
+        "dialog_ai_settings_api_key": "API Key",
+        "dialog_ai_settings_saved": "AI设置已保存",
         "error_word_format_source": "一键排版仅支持 DOCX：{name}",
         "error_doc_compare_source": "模板对照仅支持 DOCX：{name}",
         "error_source_format_mismatch": "源文件格式与“导入格式”设置不匹配：{name}",
+        "error_convert_format_mismatch": "源文件格式与“源文件格式”设置不匹配：{name}",
+        "error_convert_same_format": "源文件格式与目标文件格式不能相同。",
         "log_start_execution": "开始执行：{operation}",
         "op_copy": "复制",
         "op_move": "移动",
@@ -144,6 +161,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "op_delete": "删除",
         "op_split": "按大小拆分",
         "op_doc_split": "文档拆分",
+        "op_doc_convert": "文档转换",
         "op_word_format": "文档一键排版",
         "op_doc_compare": "文档模板对照",
         "doc_mode_h1": "按一级标题",
@@ -169,11 +187,12 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
     },
     "en": {
         "window_title": "FileOps File Operations Tool",
-        "subtitle": "Supports split/document split/word format/template compare",
+        "subtitle": "Supports document split/document convert/word format/template compare",
         "group_basic": "Basic Settings",
         "label_operation": "Operation",
         "label_language": "Language",
         "button_settings": "Settings",
+        "menu_ai_settings": "AI Settings",
         "label_workspace": "Workspace (safe scope)",
         "button_browse": "Browse",
         "group_sources": "Source List",
@@ -201,6 +220,8 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "label_doc_mode": "Heading Split Rule",
         "label_import_format": "Input Format",
         "label_export_format": "Output Format",
+        "label_source_format": "Source Format",
+        "label_target_format": "Target Format",
         "label_template": "Template",
         "button_import_template": "Import Template",
         "button_refresh_templates": "Refresh Library",
@@ -257,9 +278,16 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "error_missing_ai_provider": "AI assistance is enabled. Please select a provider.",
         "error_missing_ai_api_key": "AI assistance is enabled. Please provide API key.",
         "error_missing_ai_model": "AI assistance is enabled. Please provide model name.",
+        "dialog_ai_settings_title": "AI Settings",
+        "dialog_ai_settings_provider": "Provider",
+        "dialog_ai_settings_model": "Model",
+        "dialog_ai_settings_api_key": "API Key",
+        "dialog_ai_settings_saved": "AI settings saved",
         "error_word_format_source": "Word formatting supports DOCX only: {name}",
         "error_doc_compare_source": "Template compare supports DOCX only: {name}",
         "error_source_format_mismatch": "Source format does not match import format setting: {name}",
+        "error_convert_format_mismatch": "Source format does not match source format setting: {name}",
+        "error_convert_same_format": "Source format and target format must be different.",
         "log_start_execution": "Start operation: {operation}",
         "op_copy": "Copy",
         "op_move": "Move",
@@ -267,6 +295,7 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
         "op_delete": "Delete",
         "op_split": "Split by Size",
         "op_doc_split": "Document Split",
+        "op_doc_convert": "Document Convert",
         "op_word_format": "Word Format",
         "op_doc_compare": "Template Compare",
         "doc_mode_h1": "By H1",
@@ -293,11 +322,13 @@ TRANSLATIONS: dict[str, dict[str, str]] = {
 }
 
 LANGUAGE_OPTIONS: list[tuple[str, str]] = [("zh", "中文"), ("en", "English")]
-OPERATION_VALUES: list[str] = ["split", "doc_split", "word_format", "doc_compare"]
+OPERATION_VALUES: list[str] = ["doc_split", "doc_convert", "word_format", "doc_compare"]
 DOC_MODE_VALUES: list[str] = ["h1", "h2", "h1_h2"]
 OVERWRITE_VALUES: list[str] = ["never", "always", "rename"]
 IMPORT_FORMAT_VALUES: list[str] = ["auto", "docx", "markdown", "txt", "pdf"]
 EXPORT_FORMAT_VALUES: list[str] = ["auto", "docx", "md", "txt", "pdf"]
+CONVERT_SOURCE_FORMAT_VALUES: list[str] = ["docx", "pdf"]
+CONVERT_TARGET_FORMAT_VALUES: list[str] = ["docx", "pdf"]
 
 
 def _translate(language: str, key: str, **kwargs: object) -> str:
@@ -403,14 +434,6 @@ class OperationWorker(QThread):
         workspace = Path(self.params["workspace"])
         dry_run = bool(self.params["dry_run"])
 
-        if operation == "split":
-            common = CommonOptions(
-                workspace=workspace,
-                dry_run=dry_run,
-                overwrite=str(self.params["overwrite"]),
-            )
-            return split_items([source], Path(self.params["destination"]), float(self.params["split_size_mb"]), common)
-
         if operation == "doc_split":
             return split_documents_by_structure(
                 sources=[source],
@@ -421,6 +444,16 @@ class OperationWorker(QThread):
                 include_image_text=bool(self.params["include_image_text"]),
                 input_format=str(self.params.get("input_format", "auto")),
                 output_format=str(self.params.get("output_format", "auto")),
+            )
+
+        if operation == "doc_convert":
+            return convert_documents_format(
+                sources=[source],
+                destination=Path(self.params["destination"]),
+                workspace=workspace,
+                dry_run=dry_run,
+                source_format=str(self.params["source_format"]),
+                target_format=str(self.params["target_format"]),
             )
 
         if operation == "word_format":
@@ -464,6 +497,9 @@ class OperationWorker(QThread):
             return
         if bool(self.params.get("dry_run")):
             return
+        if operation == "word_format":
+            self._emit_word_format_validation_ai_report(results=results, ai_config=ai_config)
+            return
 
         destination = Path(self.params.get("destination", self.params["workspace"]))
         report_path = destination / f"{source.stem}_{operation}_ai_assist.md"
@@ -482,6 +518,94 @@ class OperationWorker(QThread):
         except Exception as exc:  # noqa: BLE001
             self.log_message.emit(self._tr("worker_ai_report_failed", error=exc))
 
+    def _emit_word_format_validation_ai_report(
+        self,
+        results: list[OperationResult],
+        ai_config: dict[str, object],
+    ) -> None:
+        template_path = Path(str(self.params.get("template_path", "") or "")).resolve(strict=False)
+        destination = Path(self.params.get("destination", self.params["workspace"]))
+
+        for item in results:
+            if item.status.value != "success" or not item.destination:
+                continue
+            formatted_path = Path(item.destination).resolve(strict=False)
+            if formatted_path.suffix.lower() != ".docx":
+                continue
+
+            report_path = destination / f"{formatted_path.stem}_format_check_ai_assist.md"
+            if report_path.exists():
+                report_path = unique_path(report_path)
+
+            analysis = analyze_document_with_template(source=formatted_path, template_path=template_path)
+            generated = generate_compare_ai_report(
+                analysis=analysis,
+                output_path=report_path,
+                config=ai_config,
+            )
+            self.log_message.emit(self._tr("worker_ai_report_output", path=generated))
+
+
+class AISettingsDialog(QDialog):
+    def __init__(self, language: str, current_settings: dict[str, str], parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+        self.language = language if language in TRANSLATIONS else "zh"
+        self.setModal(True)
+        self.setWindowTitle(self._tr("dialog_ai_settings_title"))
+
+        layout = QVBoxLayout(self)
+        form = QFormLayout()
+
+        self.provider_combo = QComboBox()
+        for provider, label in list_ai_providers():
+            self.provider_combo.addItem(label, provider)
+        provider_value = str(current_settings.get("provider") or "")
+        provider_index = self.provider_combo.findData(provider_value)
+        self.provider_combo.setCurrentIndex(provider_index if provider_index >= 0 else 0)
+
+        self.model_combo = QComboBox()
+        self.provider_combo.currentIndexChanged.connect(self._on_provider_changed)
+        self._rebuild_model_combo(preferred_model=str(current_settings.get("model") or ""))
+
+        self.api_key_edit = QLineEdit(str(current_settings.get("api_key") or ""))
+        self.api_key_edit.setEchoMode(QLineEdit.Password)
+
+        form.addRow(self._tr("dialog_ai_settings_provider"), self.provider_combo)
+        form.addRow(self._tr("dialog_ai_settings_model"), self.model_combo)
+        form.addRow(self._tr("dialog_ai_settings_api_key"), self.api_key_edit)
+        layout.addLayout(form)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def _tr(self, key: str, **kwargs: object) -> str:
+        return _translate(self.language, key, **kwargs)
+
+    def _on_provider_changed(self, _index: int) -> None:
+        self._rebuild_model_combo(preferred_model="")
+
+    def _rebuild_model_combo(self, preferred_model: str) -> None:
+        provider = str(self.provider_combo.currentData() or "")
+        models = list_models_for_provider(provider)
+        self.model_combo.blockSignals(True)
+        self.model_combo.clear()
+        for model in models:
+            self.model_combo.addItem(model, model)
+        if not models:
+            self.model_combo.addItem("", "")
+        target_index = self.model_combo.findData(preferred_model)
+        self.model_combo.setCurrentIndex(target_index if target_index >= 0 else 0)
+        self.model_combo.blockSignals(False)
+
+    def selected_settings(self) -> dict[str, str]:
+        return {
+            "provider": str(self.provider_combo.currentData() or "").strip(),
+            "model": str(self.model_combo.currentData() or "").strip(),
+            "api_key": self.api_key_edit.text().strip(),
+        }
+
 
 class FileOpsWindow(QMainWindow):
     def __init__(self) -> None:
@@ -496,7 +620,7 @@ class FileOpsWindow(QMainWindow):
         self.overwrite_values = OVERWRITE_VALUES[:]
         self.import_format_values = IMPORT_FORMAT_VALUES[:]
         self.export_format_values = EXPORT_FORMAT_VALUES[:]
-        self.ai_provider_values = [provider for provider, _label in list_ai_providers()]
+        self.ai_settings = self._build_default_ai_settings()
 
         self.worker: OperationWorker | None = None
         self._build_ui()
@@ -507,6 +631,14 @@ class FileOpsWindow(QMainWindow):
 
     def _tr(self, key: str, **kwargs: object) -> str:
         return _translate(self.language, key, **kwargs)
+
+    @staticmethod
+    def _build_default_ai_settings() -> dict[str, str]:
+        providers = list_ai_providers()
+        provider = providers[0][0] if providers else ""
+        models = list_models_for_provider(provider) if provider else []
+        model = models[0] if models else ""
+        return {"provider": provider, "model": model, "api_key": ""}
 
     def _build_ui(self) -> None:
         central = QWidget(self)
@@ -553,6 +685,9 @@ class FileOpsWindow(QMainWindow):
         self.settings_button.setObjectName("SettingsButton")
         self.settings_button.setPopupMode(QToolButton.InstantPopup)
         self.settings_menu = QMenu(self.settings_button)
+        self.ai_settings_action = self.settings_menu.addAction("")
+        self.ai_settings_action.triggered.connect(self._open_ai_settings_dialog)
+        self.settings_menu.addSeparator()
         self.language_menu = self.settings_menu.addMenu("")
         self.language_action_group = QActionGroup(self)
         self.language_action_group.setExclusive(True)
@@ -712,15 +847,6 @@ class FileOpsWindow(QMainWindow):
         row3.addWidget(self.trash_radio)
         row3.addWidget(self.hard_delete_radio)
 
-        self.split_size_label = QLabel("")
-        row3.addWidget(self.split_size_label)
-        self.split_size_spin = QDoubleSpinBox()
-        self.split_size_spin.setMinimum(0.01)
-        self.split_size_spin.setMaximum(20480.0)
-        self.split_size_spin.setDecimals(2)
-        self.split_size_spin.setValue(20.0)
-        row3.addWidget(self.split_size_spin)
-
         self.doc_mode_label = QLabel("")
         row3.addWidget(self.doc_mode_label)
         self.doc_mode_combo = QComboBox()
@@ -765,26 +891,8 @@ class FileOpsWindow(QMainWindow):
         self.ai_assist_check = QCheckBox("")
         self.ai_assist_check.toggled.connect(self._on_ai_assist_toggled)
         row6.addWidget(self.ai_assist_check)
-        self.ai_provider_label = QLabel("")
-        row6.addWidget(self.ai_provider_label)
-        self.ai_provider_combo = QComboBox()
-        self.ai_provider_combo.currentIndexChanged.connect(self._on_ai_provider_changed)
-        row6.addWidget(self.ai_provider_combo)
-        self.ai_model_label = QLabel("")
-        row6.addWidget(self.ai_model_label)
-        self.ai_model_combo = QComboBox()
-        row6.addWidget(self.ai_model_combo)
         row6.addStretch(1)
         options_layout.addLayout(row6)
-
-        row7 = QHBoxLayout()
-        row7.setSpacing(8)
-        self.ai_api_key_label = QLabel("")
-        row7.addWidget(self.ai_api_key_label)
-        self.ai_api_key_edit = QLineEdit("")
-        self.ai_api_key_edit.setEchoMode(QLineEdit.Password)
-        row7.addWidget(self.ai_api_key_edit, 1)
-        options_layout.addLayout(row7)
 
         right_layout.addWidget(self.options_group)
 
@@ -1075,13 +1183,16 @@ class FileOpsWindow(QMainWindow):
     def _on_ai_assist_toggled(self, _checked: bool) -> None:
         self._sync_operation_fields()
 
-    def _on_ai_provider_changed(self, _idx: int) -> None:
-        self._rebuild_ai_model_combo()
-        self._sync_operation_fields()
+    def _open_ai_settings_dialog(self) -> None:
+        dialog = AISettingsDialog(language=self.language, current_settings=self.ai_settings, parent=self)
+        if dialog.exec() != QDialog.Accepted:
+            return
+        self.ai_settings = dialog.selected_settings()
+        self._append_log(self._tr("dialog_ai_settings_saved"))
 
     def _refresh_overview(self) -> None:
         source_count = self.source_list.count()
-        operation_name = self.operation_combo.currentText() or self._tr("op_split")
+        operation_name = self.operation_combo.currentText() or self._tr("op_doc_split")
         self.chip_sources_label.setText(self._tr("chip_sources", count=source_count))
         self.chip_operation_label.setText(self._tr("chip_operation", name=operation_name))
 
@@ -1100,6 +1211,7 @@ class FileOpsWindow(QMainWindow):
         self.operation_label.setText(self._tr("label_operation"))
         self.settings_button.setText("\u2699")
         self.settings_button.setToolTip(self._tr("button_settings"))
+        self.ai_settings_action.setText(self._tr("menu_ai_settings"))
         self.language_menu.setTitle(self._tr("label_language"))
         for code, action in self.language_actions.items():
             action.setChecked(code == self.language)
@@ -1118,7 +1230,6 @@ class FileOpsWindow(QMainWindow):
         self.start_index_label.setText(self._tr("label_start_index"))
         self.trash_radio.setText(self._tr("radio_trash"))
         self.hard_delete_radio.setText(self._tr("radio_hard_delete"))
-        self.split_size_label.setText(self._tr("label_split_size"))
         self.doc_mode_label.setText(self._tr("label_doc_mode"))
         self.import_format_label.setText(self._tr("label_import_format"))
         self.export_format_label.setText(self._tr("label_export_format"))
@@ -1126,9 +1237,6 @@ class FileOpsWindow(QMainWindow):
         self.import_template_button.setText(self._tr("button_import_template"))
         self.refresh_template_button.setText(self._tr("button_refresh_templates"))
         self.ai_assist_check.setText(self._tr("check_ai_assist"))
-        self.ai_provider_label.setText(self._tr("label_ai_provider"))
-        self.ai_model_label.setText(self._tr("label_ai_model"))
-        self.ai_api_key_label.setText(self._tr("label_ai_api_key"))
         self.include_ocr_check.setText(self._tr("check_include_ocr"))
         self.run_group.setTitle(self._tr("group_run"))
         self.dry_run_check.setText(self._tr("check_dry_run"))
@@ -1142,8 +1250,6 @@ class FileOpsWindow(QMainWindow):
         self._rebuild_overwrite_combo()
         self._rebuild_import_format_combo()
         self._rebuild_export_format_combo()
-        self._rebuild_ai_provider_combo()
-        self._rebuild_ai_model_combo()
         self._reload_template_combo()
         self._sync_operation_fields()
         self._refresh_overview()
@@ -1162,7 +1268,7 @@ class FileOpsWindow(QMainWindow):
                 self.progress_label.setText(self._tr("progress_not_started"))
 
     def _rebuild_operation_combo(self) -> None:
-        current_value = self._current_operation() if self.operation_combo.count() > 0 else "split"
+        current_value = self._current_operation() if self.operation_combo.count() > 0 else "doc_split"
         self.operation_combo.blockSignals(True)
         self.operation_combo.clear()
         for operation in self.operation_values:
@@ -1211,42 +1317,27 @@ class FileOpsWindow(QMainWindow):
         self.export_format_combo.setCurrentIndex(target_index if target_index >= 0 else 0)
         self.export_format_combo.blockSignals(False)
 
-    def _rebuild_ai_provider_combo(self) -> None:
-        current_provider = str(self.ai_provider_combo.currentData() or "")
-        provider_options = list_ai_providers()
-        self.ai_provider_values = [provider for provider, _label in provider_options]
-
-        self.ai_provider_combo.blockSignals(True)
-        self.ai_provider_combo.clear()
-        for provider, label in provider_options:
-            self.ai_provider_combo.addItem(label, provider)
-
-        target_index = self.ai_provider_combo.findData(current_provider)
-        self.ai_provider_combo.setCurrentIndex(target_index if target_index >= 0 else 0)
-        self.ai_provider_combo.blockSignals(False)
-
-    def _rebuild_ai_model_combo(self) -> None:
-        current_model = str(self.ai_model_combo.currentData() or "")
-        provider = str(self.ai_provider_combo.currentData() or "")
-        models = list_models_for_provider(provider)
-
-        self.ai_model_combo.blockSignals(True)
-        self.ai_model_combo.clear()
-        for model in models:
-            self.ai_model_combo.addItem(model, model)
-        if not models:
-            self.ai_model_combo.addItem("", "")
-
-        target_index = self.ai_model_combo.findData(current_model)
-        self.ai_model_combo.setCurrentIndex(target_index if target_index >= 0 else 0)
-        self.ai_model_combo.blockSignals(False)
-
     def _operation_value_to_label(self) -> dict[str, str]:
         return {operation: self._tr(f"op_{operation}") for operation in self.operation_values}
 
     def _current_operation(self) -> str:
         value = self.operation_combo.currentData()
-        return str(value) if value else "split"
+        return str(value) if value else "doc_split"
+
+    def _update_format_options_for_operation(self, operation: str) -> None:
+        if operation == "doc_convert":
+            desired_import = CONVERT_SOURCE_FORMAT_VALUES[:]
+            desired_export = CONVERT_TARGET_FORMAT_VALUES[:]
+        else:
+            desired_import = IMPORT_FORMAT_VALUES[:]
+            desired_export = EXPORT_FORMAT_VALUES[:]
+
+        if self.import_format_values != desired_import:
+            self.import_format_values = desired_import
+            self._rebuild_import_format_combo()
+        if self.export_format_values != desired_export:
+            self.export_format_values = desired_export
+            self._rebuild_export_format_combo()
 
     def _set_widget_enabled(self, widget: QWidget, enabled: bool) -> None:
         widget.setEnabled(enabled)
@@ -1292,27 +1383,24 @@ class FileOpsWindow(QMainWindow):
 
     def _sync_operation_fields(self) -> None:
         operation = self._current_operation()
+        self._update_format_options_for_operation(operation)
 
-        show_destination = operation in {"split", "doc_split", "word_format", "doc_compare"}
-        show_split = operation == "split"
+        show_destination = operation in {"doc_split", "doc_convert", "word_format", "doc_compare"}
         show_doc_split = operation == "doc_split"
+        show_doc_convert = operation == "doc_convert"
+        show_doc_formats = operation in {"doc_split", "doc_convert"}
         show_word_format = operation in {"word_format", "doc_compare"}
-        show_ai_assist = True
 
         self._set_widget_enabled(self.destination_edit, show_destination)
         self._set_widget_enabled(self.browse_dest_button, show_destination)
-        self._set_widget_enabled(self.split_size_spin, show_split)
         self._set_widget_enabled(self.doc_mode_combo, show_doc_split)
-        self._set_widget_enabled(self.import_format_combo, show_doc_split)
-        self._set_widget_enabled(self.export_format_combo, show_doc_split)
+        self._set_widget_enabled(self.import_format_combo, show_doc_formats)
+        self._set_widget_enabled(self.export_format_combo, show_doc_formats)
         self._set_widget_enabled(self.include_ocr_check, show_doc_split)
         self._set_widget_enabled(self.template_combo, show_word_format)
         self._set_widget_enabled(self.import_template_button, show_word_format)
         self._set_widget_enabled(self.refresh_template_button, show_word_format)
         self._set_widget_enabled(self.ai_assist_check, True)
-        self._set_widget_enabled(self.ai_provider_combo, show_ai_assist and self.ai_assist_check.isChecked())
-        self._set_widget_enabled(self.ai_model_combo, show_ai_assist and self.ai_assist_check.isChecked())
-        self._set_widget_enabled(self.ai_api_key_edit, show_ai_assist and self.ai_assist_check.isChecked())
 
         self._set_widgets_visible(
             [self.destination_label, self.destination_edit, self.browse_dest_button],
@@ -1331,21 +1419,24 @@ class FileOpsWindow(QMainWindow):
             ],
             False,
         )
-        self._set_widgets_visible([self.split_size_label, self.split_size_spin], show_split)
         self._set_widgets_visible([self.doc_mode_label, self.doc_mode_combo, self.include_ocr_check], show_doc_split)
         self._set_widgets_visible(
             [self.import_format_label, self.import_format_combo, self.export_format_label, self.export_format_combo],
-            show_doc_split,
+            show_doc_formats,
         )
         self._set_widgets_visible(
             [self.template_label, self.template_combo, self.import_template_button, self.refresh_template_button],
             show_word_format,
         )
-        self._set_widgets_visible(
-            [self.ai_assist_check, self.ai_provider_label, self.ai_provider_combo, self.ai_model_label, self.ai_model_combo],
-            show_ai_assist,
-        )
-        self._set_widgets_visible([self.ai_api_key_label, self.ai_api_key_edit], show_ai_assist)
+
+        if show_doc_convert:
+            self.import_format_label.setText(self._tr("label_source_format"))
+            self.export_format_label.setText(self._tr("label_target_format"))
+        else:
+            self.import_format_label.setText(self._tr("label_import_format"))
+            self.export_format_label.setText(self._tr("label_export_format"))
+
+        self._set_widgets_visible([self.ai_assist_check], True)
         self._refresh_overview()
 
     def _set_running(self, running: bool) -> None:
@@ -1436,7 +1527,7 @@ class FileOpsWindow(QMainWindow):
     def _add_files(self) -> None:
         operation = self._current_operation()
         file_filter = ""
-        if operation == "doc_split":
+        if operation in {"doc_split", "doc_convert"}:
             file_filter = self._doc_input_file_filter()
         elif operation in {"word_format", "doc_compare"}:
             file_filter = "Word Document (*.docx);;All Files (*.*)"
@@ -1530,14 +1621,11 @@ class FileOpsWindow(QMainWindow):
             "report_path": self.report_edit.text().strip(),
         }
 
-        if operation in {"split", "doc_split", "word_format", "doc_compare"}:
+        if operation in {"doc_split", "doc_convert", "word_format", "doc_compare"}:
             dest_text = self.destination_edit.text().strip()
             if not dest_text:
                 raise ValueError(self._tr("error_missing_destination"))
             params["destination"] = Path(dest_text).resolve(strict=False)
-
-        if operation == "split":
-            params["split_size_mb"] = float(self.split_size_spin.value())
 
         if operation == "doc_split":
             params["heading_mode"] = str(self.doc_mode_combo.currentData() or "h1")
@@ -1548,6 +1636,15 @@ class FileOpsWindow(QMainWindow):
             for source in sources:
                 if not self._source_matches_doc_input_format(source, str(params["input_format"])):
                     raise ValueError(self._tr("error_source_format_mismatch", name=source.name))
+
+        if operation == "doc_convert":
+            params["source_format"] = str(self.import_format_combo.currentData() or "docx")
+            params["target_format"] = str(self.export_format_combo.currentData() or "pdf")
+            if params["source_format"] == params["target_format"]:
+                raise ValueError(self._tr("error_convert_same_format"))
+            for source in sources:
+                if not self._source_matches_doc_input_format(source, str(params["source_format"])):
+                    raise ValueError(self._tr("error_convert_format_mismatch", name=source.name))
 
         if operation in {"word_format", "doc_compare"}:
             selected_template = self.template_combo.currentData()
@@ -1561,9 +1658,9 @@ class FileOpsWindow(QMainWindow):
 
         ai_enabled = self.ai_assist_check.isChecked()
         if ai_enabled:
-            provider = str(self.ai_provider_combo.currentData() or "").strip()
-            api_key = self.ai_api_key_edit.text().strip()
-            model = str(self.ai_model_combo.currentData() or "").strip()
+            provider = str(self.ai_settings.get("provider") or "").strip()
+            api_key = str(self.ai_settings.get("api_key") or "").strip()
+            model = str(self.ai_settings.get("model") or "").strip()
             if not provider:
                 raise ValueError(self._tr("error_missing_ai_provider"))
             if not api_key:

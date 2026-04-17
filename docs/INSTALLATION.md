@@ -16,7 +16,7 @@ Expected output:
 
 ## 3. Verify GUI Features
 After launch, verify these operations in the GUI:
-- copy / move / rename / delete
-- split by size
 - document split by heading levels
+- word format by template
+- template compare and adjusted output
 - optional OCR extraction for image text

@@ -380,6 +380,8 @@ def _build_template_run_profile_map(doc: Any) -> dict[str, Any]:
         "reference_entry": None,
     }
     context: dict[str, bool] = {"toc_mode": False, "in_references": False}
+    normal_body_fallback: dict[str, Any] | None = None
+    normal_fallback: dict[str, Any] | None = None
 
     for paragraph in doc.paragraphs:
         text = str(getattr(paragraph, "text", "") or "").strip()
@@ -399,11 +401,17 @@ def _build_template_run_profile_map(doc: Any) -> dict[str, Any]:
             run_profiles["reference_heading"] = captured
         elif role == "reference_entry" and run_profiles["reference_entry"] is None:
             run_profiles["reference_entry"] = captured
-        elif role == "normal" and run_profiles["normal"] is None:
-            run_profiles["normal"] = captured
+        elif role == "normal":
+            # Prefer true body paragraphs to avoid accidentally picking title-like runs.
+            if _is_primary_body_text_candidate(text) and run_profiles["normal"] is None:
+                run_profiles["normal"] = captured
+            elif _is_body_text_candidate(text) and normal_body_fallback is None:
+                normal_body_fallback = captured
+            elif normal_fallback is None:
+                normal_fallback = captured
 
     if run_profiles["normal"] is None:
-        run_profiles["normal"] = {}
+        run_profiles["normal"] = normal_body_fallback or normal_fallback or {}
     if run_profiles["reference_heading"] is None:
         run_profiles["reference_heading"] = run_profiles["heading"].get(1) or run_profiles["normal"]
     if run_profiles["reference_entry"] is None:
@@ -518,11 +526,11 @@ def _capture_paragraph_profile(paragraph: Any) -> dict[str, Any]:
     }
 
 
-def _apply_profile_format(paragraph: Any, profile: dict[str, Any] | None) -> None:
+def _apply_profile_format(paragraph: Any, profile: dict[str, Any] | None, *, apply_style: bool = True) -> None:
     if not profile:
         return
     style_name = str(profile.get("style", "") or "")
-    if style_name:
+    if apply_style and style_name:
         try:
             paragraph.style = style_name
         except Exception:  # noqa: BLE001
@@ -575,18 +583,10 @@ def _resolve_heading_level_from_style(paragraph: Any) -> int | None:
         style_name = str(getattr(paragraph.style, "name", "") or "")
     except Exception:  # noqa: BLE001
         return None
-    if not style_name:
+    level = _heading_level_from_style_name(style_name)
+    if level is None:
         return None
-    lower = style_name.lower()
-    if "heading" not in lower and "标题" not in style_name:
-        return None
-    number_match = re.search(r"(\d+)", style_name)
-    if not number_match:
-        return 1
-    try:
-        return max(1, min(6, int(number_match.group(1))))
-    except ValueError:
-        return 1
+    return level
 
 
 def _is_body_text_candidate(text: str) -> bool:
@@ -596,6 +596,18 @@ def _is_body_text_candidate(text: str) -> bool:
     if _infer_manual_toc_level_from_text(text) is not None:
         return False
     if _is_reference_heading_text(text):
+        return False
+    return True
+
+
+def _is_primary_body_text_candidate(text: str) -> bool:
+    if not _is_body_text_candidate(text):
+        return False
+    compact = re.sub(r"\s+", "", text)
+    if len(compact) < 24:
+        return False
+    # Prefer narrative body lines rather than cover/form fields.
+    if re.search(r"[，。；！？,.!?;:：]", text) is None:
         return False
     return True
 
@@ -759,7 +771,8 @@ def _copy_paragraph_to_template(
         except Exception:  # noqa: BLE001
             pass
     _reset_paragraph_direct_format(target_paragraph)
-    _apply_profile_format(target_paragraph, _resolve_profile_for_role(profile_map, role, level))
+    # Keep role-resolved target style (e.g., Heading 1/2); only apply spacing/alignment from profile.
+    _apply_profile_format(target_paragraph, _resolve_profile_for_role(profile_map, role, level), apply_style=False)
     _normalize_paragraph_runs(target_paragraph, run_profile)
 
 
@@ -836,18 +849,43 @@ def _resolve_heading_level(paragraph: Any) -> int | None:
         text = str(getattr(paragraph, "text", "") or "").strip()
         return _infer_heading_level_from_text(text)
 
-    lower = style_name.lower()
-    if "heading" not in lower and "标题" not in style_name:
-        text = str(getattr(paragraph, "text", "") or "").strip()
-        return _infer_heading_level_from_text(text)
+    style_level = _heading_level_from_style_name(style_name)
+    if style_level is not None:
+        return style_level
 
-    number_match = re.search(r"(\d+)", style_name)
-    if not number_match:
+    text = str(getattr(paragraph, "text", "") or "").strip()
+    return _infer_heading_level_from_text(text)
+
+
+def _heading_level_from_style_name(style_name: str) -> int | None:
+    if not style_name:
+        return None
+
+    lower = style_name.lower()
+    if "heading" in lower:
+        number_match = re.search(r"(\d+)", style_name)
+        if number_match:
+            try:
+                return max(1, min(6, int(number_match.group(1))))
+            except ValueError:
+                return 1
         return 1
-    try:
-        return max(1, min(6, int(number_match.group(1))))
-    except ValueError:
-        return 1
+
+    if "标题" in style_name:
+        number_match = re.search(r"(?<!\d)([1-6])(?!\d)", style_name)
+        if number_match:
+            try:
+                return int(number_match.group(1))
+            except ValueError:
+                return None
+        zh_match = re.search(r"(一|二|三|四|五|六)", style_name)
+        if zh_match:
+            mapping = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6}
+            return mapping.get(zh_match.group(1))
+        # Do not treat generic names like “大标题” as heading levels.
+        return None
+
+    return None
 
 
 def _resolve_toc_level(paragraph: Any) -> int | None:

@@ -7,6 +7,7 @@ import pytest
 
 from docx import Document
 
+from fileops.document_convert import convert_documents_format
 from fileops.document_split import split_documents_by_structure
 from fileops.models import OperationStatus
 from fileops.operations import CommonOptions, copy_items, delete_items, move_items, rename_items, split_items
@@ -181,6 +182,69 @@ def test_split_pdf_by_size_uses_source_size_target_when_estimation_is_small(monk
 
         parts = sorted(out_dir.glob("paper.part*.pdf"))
         assert len(parts) == 2
+
+
+def test_doc_convert_pdf_to_docx_creates_output() -> None:
+    pypdf = pytest.importorskip("pypdf")
+    PdfWriter = pypdf.PdfWriter
+
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "paper.pdf"
+        out_dir = root / "convert_out"
+
+        writer = PdfWriter()
+        writer.add_blank_page(width=595, height=842)
+        with src.open("wb") as stream:
+            writer.write(stream)
+
+        results = convert_documents_format(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            source_format="pdf",
+            target_format="docx",
+        )
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.SUCCESS
+        assert (out_dir / "paper_converted.docx").exists()
+
+
+def test_doc_convert_docx_to_pdf_creates_output() -> None:
+    pypdf = pytest.importorskip("pypdf")
+    PdfReader = pypdf.PdfReader
+
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "paper.docx"
+        out_dir = root / "convert_out"
+
+        source_doc = Document()
+        source_doc.add_heading("测试标题", level=1)
+        source_doc.add_paragraph("这是一段用于转换测试的正文。")
+        source_doc.save(src)
+
+        results = convert_documents_format(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            source_format="docx",
+            target_format="pdf",
+        )
+
+        assert len(results) == 1
+        if results[0].status != OperationStatus.SUCCESS:
+            message = str(results[0].message)
+            if "Microsoft Word COM export failed" in message:
+                pytest.skip("Microsoft Word COM is unavailable in this environment.")
+        assert results[0].status == OperationStatus.SUCCESS
+        output_pdf = out_dir / "paper_converted.pdf"
+        assert output_pdf.exists()
+        reader = PdfReader(str(output_pdf))
+        assert len(reader.pages) >= 1
 
 
 def test_doc_split_markdown_by_heading() -> None:
