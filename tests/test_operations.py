@@ -247,6 +247,79 @@ def test_doc_convert_docx_to_pdf_creates_output() -> None:
         assert len(reader.pages) >= 1
 
 
+def test_doc_convert_markdown_to_docx_creates_output() -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "note.md"
+        out_dir = root / "convert_out"
+
+        src.write_text(
+            "# 标题\n"
+            "正文第一段\n"
+            "- 列表项A\n"
+            "| 列1 | 列2 |\n"
+            "| --- | --- |\n"
+            "| A | B |\n",
+            encoding="utf-8",
+        )
+
+        results = convert_documents_format(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            source_format="markdown",
+            target_format="docx",
+        )
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.SUCCESS
+        output_docx = out_dir / "note_converted.docx"
+        assert output_docx.exists()
+
+        converted = Document(str(output_docx))
+        text_content = "\n".join(paragraph.text for paragraph in converted.paragraphs)
+        assert "标题" in text_content
+        assert "正文第一段" in text_content
+
+
+def test_doc_convert_markdown_to_pdf_creates_output() -> None:
+    pypdf = pytest.importorskip("pypdf")
+    PdfReader = pypdf.PdfReader
+
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "note.md"
+        out_dir = root / "convert_out"
+
+        src.write_text(
+            "# Project Note\n"
+            "This is a markdown to pdf conversion test.\n",
+            encoding="utf-8",
+        )
+
+        results = convert_documents_format(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            source_format="markdown",
+            target_format="pdf",
+        )
+
+        assert len(results) == 1
+        if results[0].status != OperationStatus.SUCCESS:
+            message = str(results[0].message)
+            if "Microsoft Word COM export failed" in message:
+                pytest.skip("Microsoft Word COM is unavailable in this environment.")
+        assert results[0].status == OperationStatus.SUCCESS
+
+        output_pdf = out_dir / "note_converted.pdf"
+        assert output_pdf.exists()
+        reader = PdfReader(str(output_pdf))
+        assert len(reader.pages) >= 1
+
+
 def test_doc_split_markdown_by_heading() -> None:
     with TemporaryDirectory() as temp_dir:
         root = Path(temp_dir)

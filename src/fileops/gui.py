@@ -327,7 +327,7 @@ DOC_MODE_VALUES: list[str] = ["h1", "h2", "h1_h2"]
 OVERWRITE_VALUES: list[str] = ["never", "always", "rename"]
 IMPORT_FORMAT_VALUES: list[str] = ["auto", "docx", "markdown", "txt", "pdf"]
 EXPORT_FORMAT_VALUES: list[str] = ["auto", "docx", "md", "txt", "pdf"]
-CONVERT_SOURCE_FORMAT_VALUES: list[str] = ["docx", "pdf"]
+CONVERT_SOURCE_FORMAT_VALUES: list[str] = ["docx", "pdf", "markdown"]
 CONVERT_TARGET_FORMAT_VALUES: list[str] = ["docx", "pdf"]
 
 
