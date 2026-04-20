@@ -16,3 +16,7 @@ reports/
 待处理文档.docx
 模板.docx
 ._format_verify/
+Folio-master/
+.conda_envs/
+.conda/
+vendor/folio/bin/*.exe

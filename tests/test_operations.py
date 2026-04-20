@@ -2,11 +2,13 @@
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from types import SimpleNamespace
 
 import pytest
 
 from docx import Document
 
+import fileops.document_convert as document_convert_module
 from fileops.document_convert import convert_documents_format
 from fileops.document_split import split_documents_by_structure
 from fileops.models import OperationStatus
@@ -281,6 +283,170 @@ def test_doc_convert_markdown_to_docx_creates_output() -> None:
         text_content = "\n".join(paragraph.text for paragraph in converted.paragraphs)
         assert "标题" in text_content
         assert "正文第一段" in text_content
+
+
+def test_doc_convert_markdown_to_docx_prefers_folio_cli(monkeypatch: pytest.MonkeyPatch) -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "note.md"
+        out_dir = root / "convert_out"
+        fake_cli = root / "scribe-cli.exe"
+
+        src.write_text("# Title\nBody\n", encoding="utf-8")
+        fake_cli.write_text("", encoding="utf-8")
+
+        invoked: list[list[str]] = []
+
+        def _fake_run(command, capture_output=False, text=False, check=False, cwd=None):  # noqa: ANN001
+            _ = (capture_output, text, check, cwd)
+            argv = [str(item) for item in command]
+            invoked.append(argv)
+            output_arg = argv[argv.index("-o") + 1]
+            doc = Document()
+            doc.add_heading("From Folio", level=1)
+            doc.save(output_arg)
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+        monkeypatch.setenv("FILEOPS_FOLIO_CLI", str(fake_cli))
+        monkeypatch.setattr(document_convert_module.subprocess, "run", _fake_run)
+
+        results = convert_documents_format(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            source_format="markdown",
+            target_format="docx",
+        )
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.SUCCESS
+        assert invoked
+        assert invoked[0][0] == str(fake_cli)
+        assert "engine: folio" in results[0].message.lower()
+        assert (out_dir / "note_converted.docx").exists()
+
+
+def test_doc_convert_markdown_to_docx_falls_back_when_folio_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "note.md"
+        out_dir = root / "convert_out"
+        fake_cli = root / "scribe-cli.exe"
+
+        src.write_text("# Title\nBody\n", encoding="utf-8")
+        fake_cli.write_text("", encoding="utf-8")
+
+        def _fake_run(command, capture_output=False, text=False, check=False, cwd=None):  # noqa: ANN001
+            _ = (command, capture_output, text, check, cwd)
+            return SimpleNamespace(returncode=1, stdout="", stderr="folio failed")
+
+        monkeypatch.setenv("FILEOPS_FOLIO_CLI", str(fake_cli))
+        monkeypatch.setattr(document_convert_module.subprocess, "run", _fake_run)
+
+        results = convert_documents_format(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            source_format="markdown",
+            target_format="docx",
+        )
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.SUCCESS
+        assert "engine: builtin" in results[0].message.lower()
+        assert (out_dir / "note_converted.docx").exists()
+
+
+def test_doc_convert_markdown_to_docx_uses_bundled_folio_from_workspace(monkeypatch: pytest.MonkeyPatch) -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "note.md"
+        out_dir = root / "convert_out"
+        bundled_cli = root / "vendor" / "folio" / "bin" / "scribe-cli.exe"
+
+        src.write_text("# Title\nBody\n", encoding="utf-8")
+        bundled_cli.parent.mkdir(parents=True, exist_ok=True)
+        bundled_cli.write_text("", encoding="utf-8")
+
+        invoked: list[list[str]] = []
+
+        def _fake_run(command, capture_output=False, text=False, check=False, cwd=None):  # noqa: ANN001
+            _ = (capture_output, text, check, cwd)
+            argv = [str(item) for item in command]
+            invoked.append(argv)
+            output_arg = argv[argv.index("-o") + 1]
+            doc = Document()
+            doc.add_heading("From Bundled Folio", level=1)
+            doc.save(output_arg)
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+        monkeypatch.delenv("FILEOPS_FOLIO_CLI", raising=False)
+        monkeypatch.setattr(document_convert_module.shutil, "which", lambda _name: None)
+        monkeypatch.setattr(document_convert_module.subprocess, "run", _fake_run)
+
+        results = convert_documents_format(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            source_format="markdown",
+            target_format="docx",
+        )
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.SUCCESS
+        assert invoked
+        assert invoked[0][0] == str(bundled_cli.resolve(strict=False))
+        assert "engine: folio" in results[0].message.lower()
+        assert (out_dir / "note_converted.docx").exists()
+
+
+def test_doc_convert_markdown_to_docx_uses_bundled_folio_from_meipass(monkeypatch: pytest.MonkeyPatch) -> None:
+    with TemporaryDirectory() as temp_dir:
+        root = Path(temp_dir)
+        src = root / "note.md"
+        out_dir = root / "convert_out"
+        meipass_root = root / "bundle_extract"
+        bundled_cli = meipass_root / "folio" / "scribe-cli.exe"
+
+        src.write_text("# Title\nBody\n", encoding="utf-8")
+        bundled_cli.parent.mkdir(parents=True, exist_ok=True)
+        bundled_cli.write_text("", encoding="utf-8")
+
+        invoked: list[list[str]] = []
+
+        def _fake_run(command, capture_output=False, text=False, check=False, cwd=None):  # noqa: ANN001
+            _ = (capture_output, text, check, cwd)
+            argv = [str(item) for item in command]
+            invoked.append(argv)
+            output_arg = argv[argv.index("-o") + 1]
+            doc = Document()
+            doc.add_heading("From Meipass Folio", level=1)
+            doc.save(output_arg)
+            return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+        monkeypatch.delenv("FILEOPS_FOLIO_CLI", raising=False)
+        monkeypatch.setattr(document_convert_module.shutil, "which", lambda _name: None)
+        monkeypatch.setattr(document_convert_module.sys, "_MEIPASS", str(meipass_root), raising=False)
+        monkeypatch.setattr(document_convert_module.subprocess, "run", _fake_run)
+
+        results = convert_documents_format(
+            sources=[src],
+            destination=out_dir,
+            workspace=root,
+            dry_run=False,
+            source_format="markdown",
+            target_format="docx",
+        )
+
+        assert len(results) == 1
+        assert results[0].status == OperationStatus.SUCCESS
+        assert invoked
+        assert invoked[0][0] == str(bundled_cli.resolve(strict=False))
+        assert "engine: folio" in results[0].message.lower()
+        assert (out_dir / "note_converted.docx").exists()
 
 
 def test_doc_convert_markdown_to_pdf_creates_output() -> None:

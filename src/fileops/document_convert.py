@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import os
 import re
+import shutil
 import subprocess
+import sys
 from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -23,6 +26,9 @@ except ImportError:  # pragma: no cover
 
 SUPPORTED_FORMATS = {"docx", "pdf", "markdown"}
 MARKDOWN_EXTENSIONS = {".md", ".markdown"}
+FOLIO_CLI_ENV = "FILEOPS_FOLIO_CLI"
+FOLIO_PROJECT_ENV = "FILEOPS_FOLIO_PROJECT"
+FOLIO_STRICT_ENV = "FILEOPS_FOLIO_STRICT"
 
 
 def convert_documents_format(
@@ -49,6 +55,7 @@ def convert_documents_format(
     for source in sources:
         started = datetime.now()
         started_at = now_iso()
+        conversion_engine: str | None = None
 
         try:
             ensure_workspace_path(source, workspace)
@@ -75,13 +82,15 @@ def convert_documents_format(
             elif source_format == "docx" and target_format == "pdf":
                 _convert_docx_to_pdf(source, output_path)
             elif source_format == "markdown" and target_format == "pdf":
-                _convert_markdown_to_pdf(source, output_path)
+                conversion_engine = _convert_markdown_to_pdf(source, output_path, workspace)
             elif source_format == "markdown" and target_format == "docx":
-                _convert_markdown_to_docx(source, output_path)
+                conversion_engine = _convert_markdown_to_docx(source, output_path, workspace)
             else:
                 raise ValueError(f"Unsupported conversion pair: {source_format} -> {target_format}")
 
             message = f"Converted {source_format.upper()} to {target_format.upper()} -> {output_path.name}"
+            if conversion_engine:
+                message = f"{message} (engine: {conversion_engine})"
             results.append(_build_result("doc_convert", source, output_path, OperationStatus.SUCCESS, message, started, started_at))
         except Exception as exc:  # noqa: BLE001
             results.append(_build_result("doc_convert", source, None, OperationStatus.FAILED, str(exc), started, started_at))
@@ -157,17 +166,23 @@ def _convert_docx_to_pdf(source: Path, output: Path) -> None:
         raise RuntimeError("Word export finished but target PDF was not created.")
 
 
-def _convert_markdown_to_pdf(source: Path, output: Path) -> None:
-    if Document is None:
-        raise RuntimeError("python-docx is not installed. Please install dependencies first.")
-
+def _convert_markdown_to_pdf(source: Path, output: Path, workspace: Path) -> str:
     with TemporaryDirectory() as temp_dir:
         temp_docx = Path(temp_dir) / f"{source.stem}_markdown_bridge.docx"
-        _convert_markdown_to_docx(source, temp_docx)
+        conversion_engine = _convert_markdown_to_docx(source, temp_docx, workspace)
         _convert_docx_to_pdf(temp_docx, output)
+    return conversion_engine
 
 
-def _convert_markdown_to_docx(source: Path, output: Path) -> None:
+def _convert_markdown_to_docx(source: Path, output: Path, workspace: Path) -> str:
+    if _try_convert_markdown_with_folio(source, output, workspace):
+        return "folio"
+
+    _convert_markdown_to_docx_builtin(source, output)
+    return "builtin"
+
+
+def _convert_markdown_to_docx_builtin(source: Path, output: Path) -> None:
     if Document is None:
         raise RuntimeError("python-docx is not installed. Please install dependencies first.")
 
@@ -177,6 +192,148 @@ def _convert_markdown_to_docx(source: Path, output: Path) -> None:
     if not doc.paragraphs and not doc.tables:
         doc.add_paragraph("")
     doc.save(str(output))
+
+
+def _try_convert_markdown_with_folio(source: Path, output: Path, workspace: Path) -> bool:
+    commands = _build_folio_command_candidates(source, output, workspace)
+    strict_mode = os.getenv(FOLIO_STRICT_ENV, "").strip().lower() in {"1", "true", "yes", "on"}
+    errors: list[str] = []
+
+    for command, cwd in commands:
+        try:
+            completed = subprocess.run(
+                command,
+                capture_output=True,
+                text=True,
+                check=False,
+                cwd=str(cwd) if cwd is not None else None,
+            )
+        except OSError as exc:
+            errors.append(f"{' '.join(command)} -> {exc}")
+            continue
+
+        if completed.returncode == 0 and output.exists():
+            return True
+
+        detail = (completed.stderr or completed.stdout or "").strip()
+        if detail:
+            errors.append(f"{' '.join(command)} -> {detail}")
+        else:
+            errors.append(f"{' '.join(command)} -> exit code {completed.returncode}")
+
+    if strict_mode and errors:
+        error_text = "; ".join(errors[:2])
+        raise RuntimeError(f"Folio markdown conversion failed. {error_text}")
+
+    return False
+
+
+def _build_folio_command_candidates(source: Path, output: Path, workspace: Path) -> list[tuple[list[str], Path | None]]:
+    source_text = str(source)
+    output_text = str(output)
+    command_candidates: list[tuple[list[str], Path | None]] = []
+    seen: set[tuple[tuple[str, ...], str | None]] = set()
+    has_cargo = shutil.which("cargo") is not None
+
+    def _append(command: list[str], cwd: Path | None) -> None:
+        marker = (tuple(command), str(cwd) if cwd is not None else None)
+        if marker in seen:
+            return
+        seen.add(marker)
+        command_candidates.append((command, cwd))
+
+    configured_cli = os.getenv(FOLIO_CLI_ENV, "").strip()
+    if configured_cli:
+        _append([configured_cli, source_text, "-o", output_text], None)
+
+    for bundled_executable in _candidate_bundled_folio_executables(workspace, source):
+        if bundled_executable.exists():
+            _append([str(bundled_executable), source_text, "-o", output_text], None)
+
+    cli_on_path = shutil.which("scribe-cli")
+    if cli_on_path:
+        _append([cli_on_path, source_text, "-o", output_text], None)
+
+    for project_root in _candidate_folio_project_roots(workspace, source):
+        for executable in _candidate_folio_executables(project_root):
+            if executable.exists():
+                _append([str(executable), source_text, "-o", output_text], None)
+
+        if has_cargo:
+            _append(
+                ["cargo", "run", "-p", "scribe-cli", "--", source_text, "-o", output_text],
+                project_root,
+            )
+
+    return command_candidates
+
+
+def _candidate_folio_project_roots(workspace: Path, source: Path) -> list[Path]:
+    roots: list[Path] = []
+    seen: set[Path] = set()
+
+    def _append(path: Path) -> None:
+        resolved = path.resolve(strict=False)
+        if resolved in seen:
+            return
+        cargo_file = resolved / "Cargo.toml"
+        if not cargo_file.exists():
+            return
+        if not (resolved / "scribe-cli").exists():
+            return
+        seen.add(resolved)
+        roots.append(resolved)
+
+    configured_project = os.getenv(FOLIO_PROJECT_ENV, "").strip()
+    if configured_project:
+        _append(Path(configured_project))
+
+    _append(workspace / "Folio-master")
+    _append(source.parent / "Folio-master")
+    _append(Path(__file__).resolve().parents[2] / "Folio-master")
+    _append(Path.cwd() / "Folio-master")
+
+    return roots
+
+
+def _candidate_folio_executables(project_root: Path) -> list[Path]:
+    executable_name = _folio_executable_name()
+    return [
+        project_root / "target" / "release" / executable_name,
+        project_root / "target" / "debug" / executable_name,
+    ]
+
+
+def _candidate_bundled_folio_executables(workspace: Path, source: Path) -> list[Path]:
+    executable_name = _folio_executable_name()
+    candidates: list[Path] = []
+    seen: set[Path] = set()
+
+    def _append(path: Path) -> None:
+        resolved = path.resolve(strict=False)
+        if resolved in seen:
+            return
+        seen.add(resolved)
+        candidates.append(resolved)
+
+    meipass = getattr(sys, "_MEIPASS", None)
+    if meipass:
+        _append(Path(str(meipass)) / "folio" / executable_name)
+
+    executable_path = Path(sys.executable).resolve(strict=False)
+    _append(executable_path.parent / "folio" / executable_name)
+
+    repo_root = Path(__file__).resolve().parents[2]
+    _append(repo_root / "vendor" / "folio" / "bin" / executable_name)
+    _append(Path.cwd() / "vendor" / "folio" / "bin" / executable_name)
+    _append(workspace / "vendor" / "folio" / "bin" / executable_name)
+    _append(source.parent / "vendor" / "folio" / "bin" / executable_name)
+
+    return candidates
+
+
+def _folio_executable_name() -> str:
+    return "scribe-cli.exe" if os.name == "nt" else "scribe-cli"
 
 
 def _append_markdown_lines_to_doc(doc: Any, lines: list[str]) -> None:
